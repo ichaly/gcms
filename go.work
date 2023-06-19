@@ -1,0 +1,11 @@
+go 1.20
+
+use (
+	./zlog
+	./core
+	./main
+	./test
+	./base
+	./data
+	./rest
+)
