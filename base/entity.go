@@ -1,9 +1,15 @@
 package base
 
 import (
+	"go.uber.org/fx"
 	"gorm.io/gorm"
 	"time"
 )
+
+type EntityGroup struct {
+	fx.In
+	Entities []interface{} `group:"model"`
+}
 
 type Primary struct {
 	ID uint64 `gorm:"primary_key;AUTO_INCREMENT;comment:主键;"`
