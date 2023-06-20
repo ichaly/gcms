@@ -14,7 +14,7 @@ var Modules = fx.Options(
 		NewRouter,
 		NewConnect,
 		fx.Annotate(
-			NewEngine,
+			NewGraphql,
 			fx.As(new(Plugin)),
 			fx.ResultTags(`group:"plugin"`),
 		),

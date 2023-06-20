@@ -16,9 +16,9 @@ const (
 	apiEndpoint = "/api"
 )
 
-type Engine struct {
+type Graphql struct {
 	render *Render
-	Schema graphql.Schema
+	schema graphql.Schema
 }
 
 type GraphGroup struct {
@@ -27,7 +27,7 @@ type GraphGroup struct {
 	Mutations []graphql.Fields `group:"mutation"`
 }
 
-func NewEngine(g GraphGroup, r *Render) (*Engine, error) {
+func NewGraphql(g GraphGroup, r *Render) (*Graphql, error) {
 	queryFields := make(graphql.Fields)
 	mutationFields := make(graphql.Fields)
 	for _, q := range g.Queries {
@@ -49,22 +49,22 @@ func NewEngine(g GraphGroup, r *Render) (*Engine, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Engine{Schema: s, render: r}, nil
+	return &Graphql{schema: s, render: r}, nil
 }
 
-func (my *Engine) Name() string {
-	return "Engine"
+func (my *Graphql) Name() string {
+	return "Graphql"
 }
 
-func (my *Engine) Protected() bool {
+func (my *Graphql) Protected() bool {
 	return false
 }
 
-func (my *Engine) Init(r chi.Router) {
+func (my *Graphql) Init(r chi.Router) {
 	r.Handle(apiEndpoint, my)
 }
 
-func (my *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (my *Graphql) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
 			_ = my.render.JSON(w, base.ERROR.WithError(err.(error)), WithCode(http.StatusBadRequest))
@@ -95,7 +95,7 @@ func (my *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	res := graphql.Do(graphql.Params{
 		Context:        r.Context(),
-		Schema:         my.Schema,
+		Schema:         my.schema,
 		RequestString:  req.Query,
 		VariableValues: req.Variables,
 		OperationName:  req.OperationName,
