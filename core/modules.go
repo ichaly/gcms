@@ -8,11 +8,16 @@ var Modules = fx.Options(
 			NewConfig,
 			fx.ParamTags(`name:"configFile"`),
 		),
-		NewCache,
 		NewStore,
+		NewCache,
 		NewRender,
 		NewRouter,
 		NewConnect,
+		fx.Annotate(
+			NewEngine,
+			fx.As(new(Plugin)),
+			fx.ResultTags(`group:"plugin"`),
+		),
 	),
 	fx.Invoke(Bootstrap),
 )

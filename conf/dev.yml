@@ -1,0 +1,19 @@
+app:
+  name: "Yu Gong App"
+  port: 8080
+  debug: true
+  workspace: /Users/Chaly/Downloads/YuGone/
+
+cache:
+  dialect: redis
+  host: 127.0.0.1
+  port: 6379
+  password: redis123
+
+database:
+  dialect: postgres
+  host: 127.0.0.1
+  port: 5432
+  name: gcms
+  username: postgres
+  password: postgres

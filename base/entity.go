@@ -8,7 +8,7 @@ import (
 
 type EntityGroup struct {
 	fx.In
-	Entities []interface{} `group:"model"`
+	Entities []interface{} `group:"entity"`
 }
 
 type Primary struct {
@@ -27,14 +27,14 @@ type Entity struct {
 	General
 }
 
-type OwnerEntity struct {
+type AuditorEntity struct {
 	Entity
 	CreatedBy *uint64 `gorm:"comment:创建人;"`
 	UpdatedBy *uint64 `gorm:"comment:更新人;"`
 }
 
 type DeleteEntity struct {
-	OwnerEntity
+	AuditorEntity
 	DeletedBy *uint64        `gorm:"comment:删除人;"`
 	DeletedAt gorm.DeletedAt `gorm:"index;comment:逻辑删除;"`
 }

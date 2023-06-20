@@ -9,4 +9,5 @@ use (
 	./data
 	./rest
 	./util
+	./form
 )
