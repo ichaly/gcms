@@ -23,12 +23,7 @@ var runCmd = &cobra.Command{
 			form.Modules,
 			data.Modules,
 			core.Modules,
-			fx.Provide(
-				fx.Annotated{
-					Name:   "configFile",
-					Target: func() string { return configFile },
-				},
-			),
+			fx.Supply(configFile),
 		).Run()
 	},
 }

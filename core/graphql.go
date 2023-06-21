@@ -7,7 +7,6 @@ import (
 	"github.com/ichaly/gcms/base"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
-	"golang.org/x/exp/maps"
 	"net/http"
 	"strings"
 )
@@ -23,27 +22,17 @@ type Graphql struct {
 
 type GraphGroup struct {
 	fx.In
-	Queries   []graphql.Fields `group:"query"`
-	Mutations []graphql.Fields `group:"mutation"`
+	Query    *graphql.Object `name:"query"`
+	Mutation *graphql.Object `name:"mutation"`
+
+	Queries   []*graphql.Object `group:"query"`
+	Mutations []*graphql.Object `group:"mutation"`
 }
 
 func NewGraphql(g GraphGroup, r *Render) (*Graphql, error) {
-	queryFields := make(graphql.Fields)
-	mutationFields := make(graphql.Fields)
-	for _, q := range g.Queries {
-		maps.Copy(queryFields, q)
-	}
-	for _, m := range g.Mutations {
-		maps.Copy(mutationFields, m)
-	}
-	var config graphql.SchemaConfig
-	if len(queryFields) > 0 {
-		query := graphql.ObjectConfig{Name: "RootQuery", Fields: queryFields}
-		config.Query = graphql.NewObject(query)
-	}
-	if len(mutationFields) > 0 {
-		mutation := graphql.ObjectConfig{Name: "RootMutation", Fields: mutationFields}
-		config.Mutation = graphql.NewObject(mutation)
+	config := graphql.SchemaConfig{Query: g.Query}
+	if len(g.Mutation.Fields()) > 0 {
+		config.Mutation = g.Mutation
 	}
 	s, err := graphql.NewSchema(config)
 	if err != nil {
