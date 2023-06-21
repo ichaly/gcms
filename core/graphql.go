@@ -22,8 +22,8 @@ type Graphql struct {
 
 type GraphGroup struct {
 	fx.In
-	Query    *graphql.Object `name:"query"`
-	Mutation *graphql.Object `name:"mutation"`
+	Query    *graphql.Object `name:"rootQuery"`
+	Mutation *graphql.Object `name:"rootMutation"`
 
 	Queries   []*graphql.Object `group:"query"`
 	Mutations []*graphql.Object `group:"mutation"`

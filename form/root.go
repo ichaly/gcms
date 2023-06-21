@@ -1,11 +1,32 @@
 package form
 
-import "github.com/graphql-go/graphql"
+import (
+	"github.com/graphql-go/graphql"
+	"go.uber.org/fx"
+)
 
-func RootQuery() *graphql.Object {
-	return graphql.NewObject(graphql.ObjectConfig{Name: "RootQuery", Description: "RootQuery", Fields: graphql.Fields{}})
+type RootQueryOut struct {
+	fx.Out
+	Name  *graphql.Object `name:"rootQuery"`
+	Group *graphql.Object `group:"query"`
 }
 
-func RootMutation() *graphql.Object {
-	return graphql.NewObject(graphql.ObjectConfig{Name: "RootMutation", Description: "RootMutation", Fields: graphql.Fields{}})
+type RootMutationOut struct {
+	fx.Out
+	Name  *graphql.Object `name:"rootMutation"`
+	Group *graphql.Object `group:"mutation"`
+}
+
+func RootQuery() RootQueryOut {
+	obj := graphql.NewObject(graphql.ObjectConfig{
+		Name: "Query", Description: "Root query", Fields: graphql.Fields{},
+	})
+	return RootQueryOut{Name: obj, Group: obj}
+}
+
+func RootMutation() RootMutationOut {
+	obj := graphql.NewObject(graphql.ObjectConfig{
+		Name: "Mutation", Description: "Root mutation", Fields: graphql.Fields{},
+	})
+	return RootMutationOut{Name: obj, Group: obj}
 }

@@ -2,9 +2,16 @@ package form
 
 import (
 	"github.com/graphql-go/graphql"
+	"go.uber.org/fx"
 )
 
-func UserQuery(root *graphql.Object) *graphql.Object {
+type UserQueryOut struct {
+	fx.Out
+	Name  *graphql.Object `name:"userQuery"`
+	Group *graphql.Object `group:"query"`
+}
+
+func UserQuery(root *graphql.Object) UserQueryOut {
 	userType := graphql.NewObject(
 		graphql.ObjectConfig{
 			Name: "User",
@@ -27,5 +34,5 @@ func UserQuery(root *graphql.Object) *graphql.Object {
 			return nil, nil
 		},
 	})
-	return userType
+	return UserQueryOut{Name: userType, Group: userType}
 }
