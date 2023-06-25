@@ -2,7 +2,9 @@ package form
 
 import (
 	"github.com/graphql-go/graphql"
+	"github.com/ichaly/gcms/data"
 	"go.uber.org/fx"
+	"gorm.io/gorm"
 )
 
 type UserQueryOut struct {
@@ -11,27 +13,33 @@ type UserQueryOut struct {
 	Group *graphql.Object `group:"query"`
 }
 
-func UserQuery(root *graphql.Object) UserQueryOut {
+func UserQuery(root *graphql.Object, db *gorm.DB) UserQueryOut {
 	userType := graphql.NewObject(
 		graphql.ObjectConfig{
 			Name: "User",
 			Fields: graphql.Fields{
 				"id": &graphql.Field{
 					Type: graphql.Int,
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						return p.Source.(*data.User).ID, nil
+					},
+				},
+				"name": &graphql.Field{
+					Type: graphql.String,
+					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+						return p.Source.(*data.User).Name, nil
+					},
 				},
 			},
 		},
 	)
-	root.AddFieldConfig("user", &graphql.Field{
-		Type:        userType,
-		Description: "Get user by id",
-		Args: graphql.FieldConfigArgument{
-			"id": &graphql.ArgumentConfig{
-				Type: graphql.Int,
-			},
-		},
+	root.AddFieldConfig("users", &graphql.Field{
+		Type:        graphql.NewList(userType),
+		Description: "List user",
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return nil, nil
+			var res []*data.User
+			err := db.Model(&data.User{}).Find(&res).Error
+			return res, err
 		},
 	})
 	return UserQueryOut{Name: userType, Group: userType}

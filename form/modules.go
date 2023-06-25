@@ -12,5 +12,9 @@ var Modules = fx.Options(
 			UserQuery,
 			fx.ParamTags(`name:"rootQuery"`),
 		),
+		fx.Annotate(
+			ContentQuery,
+			fx.ParamTags(`name:"userQuery"`),
+		),
 	),
 )

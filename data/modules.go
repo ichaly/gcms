@@ -6,11 +6,17 @@ import (
 
 var Modules = fx.Options(
 	fx.Provide(
-		fx.Annotate(
-			func() interface{} {
+		fx.Annotated{
+			Group: "entity",
+			Target: func() interface{} {
 				return &User{}
 			},
-			fx.ResultTags(`group:"entity"`),
-		),
+		},
+		fx.Annotated{
+			Group: "entity",
+			Target: func() interface{} {
+				return &Content{}
+			},
+		},
 	),
 )

@@ -14,10 +14,10 @@ func NewConnect(che Cache, cfg *Config, etg base.EntityGroup) (*gorm.DB, error) 
 	if err != nil {
 		return nil, err
 	}
-	err = db.Use(che)
-	if err != nil {
-		return nil, err
-	}
+	//err = db.Use(che)
+	//if err != nil {
+	//	return nil, err
+	//}
 	if cfg.App.Debug {
 		err = db.AutoMigrate(etg.Entities...)
 	}
