@@ -5,7 +5,6 @@ import (
 	"github.com/graph-gophers/dataloader/v7"
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/data"
-	"github.com/ichaly/gcms/util"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
 )
@@ -19,18 +18,20 @@ type ContentQueryOut struct {
 func ContentQuery(user *graphql.Object, db *gorm.DB) ContentQueryOut {
 	batchFunc := func(_ context.Context, keys []uint64) []*dataloader.Result[*data.Content] {
 		var contents []*data.Content
-		db.Model(&data.Content{}).Where("created_by in ?", keys).Find(&contents)
+		err := db.Model(&data.Content{}).Where("created_by in ?", keys).Find(&contents).Error
 		values := make(map[uint64]*data.Content)
-		util.Reduce(contents, func(values map[uint64]*data.Content, c *data.Content) map[uint64]*data.Content {
+		for _, c := range contents {
 			values[*c.CreatedBy] = c
-			return values
-		}, values)
-
+		}
 		results := make([]*dataloader.Result[*data.Content], len(keys))
 		for i, k := range keys {
-			if v, ok := values[k]; ok {
-				results[i] = &dataloader.Result[*data.Content]{Data: v}
+			r := &dataloader.Result[*data.Content]{
+				Error: err,
 			}
+			if v, ok := values[k]; ok {
+				r.Data = v
+			}
+			results[i] = r
 		}
 		return results
 	}
