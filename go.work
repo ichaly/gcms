@@ -2,12 +2,12 @@ go 1.20
 
 use (
 	./zlog
-	./core
-	./main
-	./test
+	./util
 	./base
 	./data
-	./rest
-	./util
 	./form
+	./core
+	./serv
+	./main
+	./test
 )

@@ -1,12 +1,12 @@
-package core
+package serv
 
 import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/base"
+	"github.com/ichaly/gcms/core"
 	"github.com/pkg/errors"
-	"go.uber.org/fx"
 	"net/http"
 	"strings"
 )
@@ -20,25 +20,13 @@ type Graphql struct {
 	schema graphql.Schema
 }
 
-type GraphGroup struct {
-	fx.In
-	Query    *graphql.Object `name:"rootQuery"`
-	Mutation *graphql.Object `name:"rootMutation"`
-
-	Queries   []*graphql.Object `group:"query"`
-	Mutations []*graphql.Object `group:"mutation"`
-}
-
-func NewGraphql(g GraphGroup, r *Render) (*Graphql, error) {
-	config := graphql.SchemaConfig{Query: g.Query}
-	if len(g.Mutation.Fields()) > 0 {
-		config.Mutation = g.Mutation
-	}
-	s, err := graphql.NewSchema(config)
+func NewGraphql(r *Render, e *core.Engine) (*Graphql, error) {
+	config := graphql.SchemaConfig{Query: e.Query}
+	schema, err := graphql.NewSchema(config)
 	if err != nil {
 		return nil, err
 	}
-	return &Graphql{schema: s, render: r}, nil
+	return &Graphql{schema: schema, render: r}, nil
 }
 
 func (my *Graphql) Name() string {
