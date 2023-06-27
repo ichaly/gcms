@@ -2,39 +2,48 @@ package core
 
 import (
 	"github.com/graphql-go/graphql"
+	"github.com/iancoleman/strcase"
 	"github.com/ichaly/gcms/base"
+	"gorm.io/gorm"
 	"reflect"
 )
 
 type Engine struct {
-	Query        *graphql.Object
-	Mutation     *graphql.Object
-	Subscription *graphql.Object
-	types        map[reflect.Type]*graphql.Object
+	Query              *graphql.Object
+	Mutation           *graphql.Object
+	Subscription       *graphql.Object
+	types              map[reflect.Type]graphql.Type
+	objectFieldParsers []fieldParser
 }
 
-func NewEngine(eg base.EntityGroup) (*Engine, error) {
-	e := &Engine{
-		types: make(map[reflect.Type]*graphql.Object),
+func NewEngine(eg base.EntityGroup, db *gorm.DB) (*Engine, error) {
+	engine := &Engine{
+		types: make(map[reflect.Type]graphql.Type),
 	}
-	e.Query = graphql.NewObject(graphql.ObjectConfig{
+	engine.objectFieldParsers = []fieldParser{
+		engine.asBuiltinScalar,
+		engine.asIdField,
+		engine.asEnumField,
+		engine.asObjectField,
+		engine.asCustomScalarField,
+	}
+	engine.Query = graphql.NewObject(graphql.ObjectConfig{
 		Name:        "Query",
 		Description: "Root Query",
 		Fields:      graphql.Fields{},
 	})
 	for _, v := range eg.Entities {
-		obj, err := e.RegisterObject(v)
+		obj, err := engine.RegisterObject(v)
 		if err != nil {
 			return nil, err
 		}
-		e.Query.AddFieldConfig(obj.Name(), &graphql.Field{
+		engine.Query.AddFieldConfig(strcase.ToLowerCamel(obj.Name()), &graphql.Field{
 			Type:        obj,
-			Name:        obj.Name(),
 			Description: obj.Description(),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				return nil, nil
 			},
 		})
 	}
-	return e, nil
+	return engine, nil
 }

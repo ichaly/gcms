@@ -15,6 +15,8 @@ type typeInfo struct {
 	baseType reflect.Type
 }
 
+type fieldParser func(field *reflect.StructField) (graphql.Type, *typeInfo, error)
+
 func description(field *reflect.StructField) string {
 	tag := field.Tag.Get("gorm")
 	tags := strings.Split(tag, ";")
@@ -26,37 +28,7 @@ func description(field *reflect.StructField) string {
 	return ""
 }
 
-func unwrap(p reflect.Type) (typeInfo, error) {
-	switch p.Kind() {
-	case reflect.Slice, reflect.Array:
-		info, err := unwrap(p.Elem())
-		if err == nil {
-			info.array = true
-		}
-		return info, err
-	case reflect.Ptr:
-		b := p.Elem()
-		if !isBaseType(b) {
-			return typeInfo{}, fmt.Errorf("'%s' is not pointed to a base type", p.String())
-		}
-		return typeInfo{
-			ptrType:  p,
-			baseType: b,
-			implType: b,
-		}, nil
-	default:
-		if isBaseType(p) {
-			return typeInfo{
-				baseType: p,
-				ptrType:  reflect.New(p).Type(), // fixme: optimize for performance here
-				implType: p,
-			}, nil
-		}
-		return typeInfo{}, fmt.Errorf("unsupported type('%s') to unwrap", p.String())
-	}
-}
-
-func isBaseType(p reflect.Type) bool {
+func isPrimitive(p reflect.Type) bool {
 	switch p.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
@@ -69,6 +41,110 @@ func isBaseType(p reflect.Type) bool {
 		return true
 	}
 	return false
+}
+
+func unwrap(p reflect.Type) (typeInfo, error) {
+	switch p.Kind() {
+	case reflect.Slice, reflect.Array:
+		info, err := unwrap(p.Elem())
+		if err == nil {
+			info.array = true
+		}
+		return info, err
+	case reflect.Ptr:
+		b := p.Elem()
+		if !isPrimitive(b) {
+			return typeInfo{}, fmt.Errorf("'%s' is not pointed to a base type", p.String())
+		}
+		return typeInfo{
+			ptrType:  p,
+			baseType: b,
+			implType: b,
+		}, nil
+	default:
+		if isPrimitive(p) {
+			return typeInfo{
+				baseType: p,
+				ptrType:  reflect.New(p).Type(), // fixme: optimize for performance here
+				implType: p,
+			}, nil
+		}
+		return typeInfo{}, fmt.Errorf("unsupported type('%s') to unwrap", p.String())
+	}
+}
+
+func implementsOf(p reflect.Type, intf reflect.Type) (implemented bool, info typeInfo, err error) {
+	switch p.Kind() {
+	case reflect.Slice, reflect.Array:
+		e := p.Elem()
+		if e.Kind() == reflect.Ptr || isPrimitive(e) {
+			implemented, info, err = implementsOf(p.Elem(), intf)
+			if err == nil {
+				info.array = true
+			}
+		} else {
+			err = fmt.Errorf("'%s' is illegal as an element of slice/array", e.String())
+		}
+	case reflect.Ptr:
+		implemented = p.Implements(intf)
+		if implemented {
+			info.ptrType = p
+			info.array = false
+			info.implType = p
+			info.baseType = p.Elem()
+			if !isPrimitive(info.baseType) {
+				err = fmt.Errorf("'%s' is not point to a base type", p.String())
+			}
+			return
+		}
+		b := p.Elem()
+		if !isPrimitive(b) {
+			err = fmt.Errorf("'%s' is not point to a base type", p.String())
+			return
+		}
+		implemented = b.Implements(intf)
+		if implemented {
+			info.ptrType = p
+			info.implType = b
+			info.baseType = b
+			info.array = false
+		}
+	default:
+		if isPrimitive(p) {
+			implemented = p.Implements(intf)
+			if implemented {
+				info.implType = p
+				info.baseType = p
+			}
+			// try ptr
+			pp := reflect.New(p).Type()
+			info.ptrType = pp
+			if implemented {
+				return
+			}
+
+			implemented = pp.Implements(intf)
+			if implemented {
+				info.implType = pp
+				info.baseType = p
+			}
+		}
+	}
+	return
+}
+
+func newPrototype(p reflect.Type) interface{} {
+	elem := false
+	if p.Kind() == reflect.Ptr {
+		p = p.Elem()
+	} else {
+		elem = true
+	}
+	v := reflect.New(p)
+	if elem {
+		v = v.Elem()
+	}
+	return v.Interface()
 }
 
 func newNonNull(t graphql.Type) graphql.Type {
@@ -100,6 +176,20 @@ func wrapType(field *reflect.StructField, t graphql.Type, isArray bool) graphql.
 		}
 	}
 	return t
+}
+
+func parseField(field *reflect.StructField, parsers []fieldParser, errString string) (graphql.Type, *typeInfo, error) {
+	for _, check := range parsers {
+		typ, info, err := check(field)
+		if err != nil {
+			return nil, info, err
+		}
+		if typ == nil {
+			continue
+		}
+		return typ, info, nil
+	}
+	return nil, nil, fmt.Errorf("unsupported type('%s') for %s '%s'", field.Type.String(), errString, field.Name)
 }
 
 func boolTag(field *reflect.StructField, tagName string) bool {

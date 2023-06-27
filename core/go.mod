@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/graphql-go/graphql v0.8.1
+	github.com/iancoleman/strcase v0.2.0
 	github.com/ichaly/gcms/base v0.0.0-20230626034429-614b3fa76300
 	go.uber.org/fx v1.20.0
 )

@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func asBuiltinScalar(field *reflect.StructField) (graphql.Type, *typeInfo, error) {
+func (my *Engine) asBuiltinScalar(field *reflect.StructField) (graphql.Type, *typeInfo, error) {
 	info, err := unwrap(field.Type)
 	if err != nil {
 		return nil, &info, err

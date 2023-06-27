@@ -12,11 +12,17 @@ var Modules = fx.Options(
 				return &User{}
 			},
 		},
-		//fx.Annotated{
-		//	Group: "entity",
-		//	Target: func() interface{} {
-		//		return &Content{}
-		//	},
-		//},
+		fx.Annotated{
+			Group: "entity",
+			Target: func() interface{} {
+				return &Media{}
+			},
+		},
+		fx.Annotated{
+			Group: "entity",
+			Target: func() interface{} {
+				return &Content{}
+			},
+		},
 	),
 )

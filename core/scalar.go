@@ -1,0 +1,62 @@
+package core
+
+import (
+	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/graphql/language/ast"
+	"reflect"
+)
+
+var _scalarType = reflect.TypeOf((*Scalar)(nil)).Elem()
+
+type Scalar interface {
+	GqlScalarSerialize() interface{}
+	GqlScalarParseValue(value interface{})
+	GqlScalarDescription() string
+}
+
+func (my *Engine) collectCustomScalar(info *typeInfo) *graphql.Scalar {
+	if s, ok := my.types[info.baseType]; ok {
+		return s.(*graphql.Scalar)
+	}
+
+	scalar := newPrototype(info.implType).(Scalar)
+
+	name := info.baseType.Name()
+
+	literalParsing := func(valueAST ast.Value) interface{} {
+		s := newPrototype(info.implType).(Scalar)
+		s.GqlScalarParseValue(valueAST.GetValue())
+		return s
+	}
+
+	d := graphql.NewScalar(graphql.ScalarConfig{
+		Name:        name,
+		Description: scalar.GqlScalarDescription(),
+		Serialize: func(value interface{}) interface{} {
+			if s, ok := value.(Scalar); ok {
+				return s.GqlScalarSerialize()
+			}
+			return nil
+		},
+		ParseValue: func(value interface{}) interface{} {
+			s := newPrototype(info.implType).(Scalar)
+			s.GqlScalarParseValue(value)
+			return s
+		},
+		ParseLiteral: literalParsing,
+	})
+	my.types[info.baseType] = d
+	return d
+}
+
+func (my *Engine) asCustomScalarField(field *reflect.StructField) (graphql.Type, *typeInfo, error) {
+	isScalar, info, err := implementsOf(field.Type, _scalarType)
+	if err != nil {
+		return nil, &info, err
+	}
+	if !isScalar {
+		return nil, &info, nil
+	}
+	typ := my.collectCustomScalar(&info)
+	return wrapType(field, typ, info.array), &info, nil
+}
