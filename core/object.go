@@ -12,7 +12,7 @@ var (
 )
 
 type Object interface {
-	GqlObjectDescription() string
+	GqlDescription() string
 }
 
 func (my *Engine) unwrapObjectFields(baseType reflect.Type, object *graphql.Object, depth int) error {
@@ -51,14 +51,14 @@ func (my *Engine) unwrapObjectFields(baseType reflect.Type, object *graphql.Obje
 	return nil
 }
 
-func (my *Engine) collectObject(info *typeInfo) (*graphql.Object, error) {
+func (my *Engine) parseObject(info *typeInfo) (*graphql.Object, error) {
 	if obj, ok := my.types[info.baseType]; ok {
 		return obj.(*graphql.Object), nil
 	}
 	prototype, ok := newPrototype(info.implType).(Object)
 	name, desc := info.baseType.Name(), ""
 	if prototype != nil && ok {
-		desc = prototype.GqlObjectDescription()
+		desc = prototype.GqlDescription()
 	}
 	object := graphql.NewObject(graphql.ObjectConfig{
 		Name: name, Description: desc, Fields: graphql.Fields{},
@@ -82,7 +82,7 @@ func (my *Engine) asObjectField(field *reflect.StructField) (graphql.Type, *type
 			return nil, &info, err
 		}
 	}
-	typ, err := my.collectObject(&info)
+	typ, err := my.parseObject(&info)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -100,7 +100,7 @@ func (my *Engine) registerObject(p reflect.Type) (*graphql.Object, error) {
 			return nil, err
 		}
 	}
-	return my.collectObject(&info)
+	return my.parseObject(&info)
 }
 
 func (my *Engine) RegisterObject(prototype interface{}) (*graphql.Object, error) {

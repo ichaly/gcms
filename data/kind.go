@@ -2,7 +2,7 @@ package data
 
 import (
 	"database/sql/driver"
-	"github.com/ichaly/gcms/core"
+	"github.com/graphql-go/graphql"
 )
 
 type Kind string
@@ -22,14 +22,14 @@ func (my Kind) Value() (driver.Value, error) {
 	return string(my), nil
 }
 
-func (Kind) GqlEnumDescription() string {
+func (Kind) GqlDescription() string {
 	return "The episodes in the Star Wars trilogy"
 }
 
-func (Kind) GqlEnumValues() core.EnumValueMapping {
-	return core.EnumValueMapping{
-		"MOMENT":   {Moment, "Star Wars Episode IV: A New Hope, released in 1977."},
-		"QUESTION": {Question, "Star Wars Episode V: The Empire Strikes Back, released in 1980."},
-		"ANSWER":   {Answer, "Star Wars Episode VI: Return of the Jedi, released in 1983."},
+func (Kind) GqlEnumValues() map[string]*graphql.EnumValueConfig {
+	return map[string]*graphql.EnumValueConfig{
+		"MOMENT":   {Value: Moment, Description: "Star Wars Episode IV: A New Hope, released in 1977."},
+		"QUESTION": {Value: Question, Description: "Star Wars Episode V: The Empire Strikes Back, released in 1980."},
+		"ANSWER":   {Value: Answer, Description: "Star Wars Episode VI: Return of the Jedi, released in 1983."},
 	}
 }

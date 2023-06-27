@@ -9,12 +9,12 @@ import (
 var _scalarType = reflect.TypeOf((*Scalar)(nil)).Elem()
 
 type Scalar interface {
+	Object
 	GqlScalarSerialize() interface{}
 	GqlScalarParseValue(value interface{})
-	GqlScalarDescription() string
 }
 
-func (my *Engine) collectCustomScalar(info *typeInfo) *graphql.Scalar {
+func (my *Engine) parseCustomScalar(info *typeInfo) *graphql.Scalar {
 	if s, ok := my.types[info.baseType]; ok {
 		return s.(*graphql.Scalar)
 	}
@@ -31,7 +31,7 @@ func (my *Engine) collectCustomScalar(info *typeInfo) *graphql.Scalar {
 
 	d := graphql.NewScalar(graphql.ScalarConfig{
 		Name:        name,
-		Description: scalar.GqlScalarDescription(),
+		Description: scalar.GqlDescription(),
 		Serialize: func(value interface{}) interface{} {
 			if s, ok := value.(Scalar); ok {
 				return s.GqlScalarSerialize()
@@ -57,6 +57,6 @@ func (my *Engine) asCustomScalarField(field *reflect.StructField) (graphql.Type,
 	if !isScalar {
 		return nil, &info, nil
 	}
-	typ := my.collectCustomScalar(&info)
+	typ := my.parseCustomScalar(&info)
 	return wrapType(field, typ, info.array), &info, nil
 }
