@@ -238,7 +238,7 @@ docs/_book
 # vendor/
 
 # Go workspace file
-*/*.sum
+**/*.sum
 
 ### Vuejs template
 # Recommended template: Node.gitignore
