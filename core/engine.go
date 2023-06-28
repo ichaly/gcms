@@ -17,33 +17,33 @@ type Engine struct {
 }
 
 func NewEngine(eg base.EntityGroup, db *gorm.DB) (*Engine, error) {
-	engine := &Engine{
+	my := &Engine{
 		types: make(map[reflect.Type]graphql.Type),
 	}
-	engine.objectFieldParsers = []fieldParser{
-		engine.asBuiltinScalar,
-		engine.asIdField,
-		engine.asEnumField,
-		engine.asObjectField,
-		engine.asCustomScalarField,
+	my.objectFieldParsers = []fieldParser{
+		my.asBuiltinScalar,
+		my.asIdField,
+		my.asEnumField,
+		my.asObjectField,
+		my.asCustomScalarField,
 	}
-	engine.Query = graphql.NewObject(graphql.ObjectConfig{
-		Name:        "Query",
-		Description: "Root Query",
-		Fields:      graphql.Fields{},
+	my.Query = graphql.NewObject(graphql.ObjectConfig{
+		Name: "Query", Description: "Root Query", Fields: graphql.Fields{},
 	})
 	for _, v := range eg.Entities {
-		obj, err := engine.RegisterObject(v)
+		obj, err := my.RegisterObject(v)
 		if err != nil {
 			return nil, err
 		}
-		engine.Query.AddFieldConfig(strcase.ToLowerCamel(obj.Name()), &graphql.Field{
+		name := strcase.ToLowerCamel(obj.Name())
+		my.Query.AddFieldConfig(name, &graphql.Field{
 			Type:        obj,
+			Args:        map[string]*graphql.ArgumentConfig{},
 			Description: obj.Description(),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				return nil, nil
 			},
 		})
 	}
-	return engine, nil
+	return my, nil
 }

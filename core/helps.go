@@ -3,7 +3,9 @@ package core
 import (
 	"fmt"
 	"github.com/graphql-go/graphql"
+	"github.com/iancoleman/strcase"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -190,6 +192,18 @@ func parseField(field *reflect.StructField, parsers []fieldParser, errString str
 		return typ, info, nil
 	}
 	return nil, nil, fmt.Errorf("unsupported type('%s') for %s '%s'", field.Type.String(), errString, field.Name)
+}
+
+func getFuncName(fn interface{}) string {
+	name := runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
+	if dot := strings.LastIndex(name, "."); dot >= 0 {
+		return name[dot+1:]
+	}
+	return name
+}
+
+func getEntryFuncName(fn interface{}) string {
+	return strcase.ToLowerCamel(getFuncName(fn))
 }
 
 func boolTag(field *reflect.StructField, tagName string) bool {
