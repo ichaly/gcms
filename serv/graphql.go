@@ -5,7 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/base"
-	"github.com/ichaly/gcms/core"
+	"github.com/ichaly/gcms/form"
 	"github.com/pkg/errors"
 	"net/http"
 	"strings"
@@ -20,8 +20,8 @@ type Graphql struct {
 	schema graphql.Schema
 }
 
-func NewGraphql(r *Render, e *core.Engine) (*Graphql, error) {
-	config := graphql.SchemaConfig{Query: e.Query}
+func NewGraphql(r *Render, g form.GraphGroup) (*Graphql, error) {
+	config := graphql.SchemaConfig{Query: g.Query}
 	schema, err := graphql.NewSchema(config)
 	if err != nil {
 		return nil, err

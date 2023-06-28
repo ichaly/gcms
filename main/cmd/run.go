@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/ichaly/gcms/core"
 	"github.com/ichaly/gcms/data"
+	"github.com/ichaly/gcms/form"
 	"github.com/ichaly/gcms/serv"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
@@ -23,6 +24,7 @@ var runCmd = &cobra.Command{
 			data.Modules,
 			core.Modules,
 			serv.Modules,
+			form.Modules,
 			fx.Supply(configFile),
 		).Run()
 	},

@@ -5,6 +5,15 @@ import (
 	"go.uber.org/fx"
 )
 
+type GraphGroup struct {
+	fx.In
+	Query    *graphql.Object `name:"rootQuery"`
+	Mutation *graphql.Object `name:"rootMutation"`
+
+	Queries   []*graphql.Object `group:"query"`
+	Mutations []*graphql.Object `group:"mutation"`
+}
+
 type RootQueryOut struct {
 	fx.Out
 	Name  *graphql.Object `name:"rootQuery"`

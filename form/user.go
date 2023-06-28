@@ -26,9 +26,6 @@ func UserQuery(root *graphql.Object, db *gorm.DB) UserQueryOut {
 				},
 				"name": &graphql.Field{
 					Type: graphql.String,
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						return p.Source.(*data.User).Name, nil
-					},
 				},
 			},
 		},
