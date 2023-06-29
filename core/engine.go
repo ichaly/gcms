@@ -4,6 +4,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
+	"golang.org/x/exp/maps"
 	"reflect"
 )
 
@@ -15,7 +16,9 @@ type Engine struct {
 
 func NewEngine() (*Engine, error) {
 	my := &Engine{
-		config: graphql.SchemaConfig{},
+		config: graphql.SchemaConfig{
+			Types: []graphql.Type{Cursor, Void, OrderDirection},
+		},
 		types: map[reflect.Type]graphql.Type{
 			_queryType: q, _mutationType: m, _subscriptionType: s,
 		},
@@ -73,8 +76,29 @@ func (my *Engine) AddTo(source interface{}, target reflect.Type) error {
 		return err
 	}
 	name := strcase.ToLowerCamel(node.Name())
+	keys := maps.Keys(node.Fields())
+	fields := graphql.InputObjectConfigFieldMap{}
+	for _, k := range keys {
+		fields[k] = &graphql.InputObjectFieldConfig{Type: OrderDirection}
+	}
+	orderByType := graphql.NewInputObject(graphql.InputObjectConfig{
+		Name: node.Name() + "OrderByInput", Fields: fields,
+	})
 	obj.AddFieldConfig(name, &graphql.Field{
 		Type: node, Description: node.Description(),
+		Args: map[string]*graphql.ArgumentConfig{
+			"id":         {Type: graphql.ID},
+			"limit":      {Type: graphql.Int},
+			"offset":     {Type: graphql.Int},
+			"first":      {Type: graphql.Int},
+			"last":       {Type: graphql.Int},
+			"after":      {Type: Cursor},
+			"before":     {Type: Cursor},
+			"search":     {Type: graphql.String},
+			"orderBy":    {Type: orderByType},
+			"where":      {Type: graphql.String},
+			"distinctOn": {Type: graphql.NewList(graphql.String)},
+		},
 	})
 	return nil
 }
