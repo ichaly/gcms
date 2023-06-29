@@ -11,8 +11,12 @@ type EntityGroup struct {
 	Entities []interface{} `group:"entity"`
 }
 
+type ID uint64
+
+func (my ID) GqlID() {}
+
 type Primary struct {
-	ID uint64 `gorm:"primary_key;AUTO_INCREMENT;comment:主键;"`
+	ID ID `gorm:"primary_key;AUTO_INCREMENT;comment:主键;"`
 }
 
 type General struct {

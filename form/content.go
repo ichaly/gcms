@@ -62,7 +62,7 @@ func ContentQuery(user *graphql.Object, db *gorm.DB) ContentQueryOut {
 		Description: "Get content by creator id",
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			uid := p.Source.(*data.User).ID
-			thunk := loader.Load(p.Context, uid)
+			thunk := loader.Load(p.Context, uint64(uid))
 			return func() (interface{}, error) {
 				return thunk()
 			}, nil

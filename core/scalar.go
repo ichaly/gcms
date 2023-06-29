@@ -49,14 +49,14 @@ func (my *Engine) parseCustomScalar(info *typeInfo) *graphql.Scalar {
 	return d
 }
 
-func (my *Engine) asCustomScalarField(field *reflect.StructField) (graphql.Type, *typeInfo, error) {
+func (my *Engine) asCustomScalarField(field *reflect.StructField) (graphql.Type, error) {
 	isScalar, info, err := implementsOf(field.Type, _scalarType)
 	if err != nil {
-		return nil, &info, err
+		return nil, err
 	}
 	if !isScalar {
-		return nil, &info, nil
+		return nil, nil
 	}
 	typ := my.parseCustomScalar(&info)
-	return wrapType(field, typ, info.array), &info, nil
+	return wrapType(field.Type, typ), nil
 }

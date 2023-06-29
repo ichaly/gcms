@@ -5,7 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/base"
-	"github.com/ichaly/gcms/form"
+	"github.com/ichaly/gcms/core"
 	"github.com/pkg/errors"
 	"net/http"
 	"strings"
@@ -20,13 +20,24 @@ type Graphql struct {
 	schema graphql.Schema
 }
 
-func NewGraphql(r *Render, g form.GraphGroup) (*Graphql, error) {
-	config := graphql.SchemaConfig{Query: g.Query}
-	schema, err := graphql.NewSchema(config)
+type gqlRequest struct {
+	Query         string                 `json:"query"`
+	OperationName string                 `json:"operationName"`
+	Variables     map[string]interface{} `json:"variables"`
+}
+
+func NewGraphql(r *Render, g base.EntityGroup, e *core.Engine) (*Graphql, error) {
+	for _, v := range g.Entities {
+		err := e.AddQuery(v)
+		if err != nil {
+			return nil, err
+		}
+	}
+	s, err := e.Schema()
 	if err != nil {
 		return nil, err
 	}
-	return &Graphql{schema: schema, render: r}, nil
+	return &Graphql{schema: s, render: r}, nil
 }
 
 func (my *Graphql) Name() string {
@@ -78,10 +89,4 @@ func (my *Graphql) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		OperationName:  req.OperationName,
 	})
 	_ = my.render.JSON(w, res)
-}
-
-type gqlRequest struct {
-	Query         string                 `json:"query"`
-	OperationName string                 `json:"operationName"`
-	Variables     map[string]interface{} `json:"variables"`
 }

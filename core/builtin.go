@@ -5,19 +5,18 @@ import (
 	"reflect"
 )
 
-func (my *Engine) asBuiltinScalar(field *reflect.StructField) (graphql.Type, *typeInfo, error) {
+func (my *Engine) asBuiltinScalarField(field *reflect.StructField) (graphql.Type, error) {
 	info, err := unwrap(field.Type)
 	if err != nil {
-		return nil, &info, err
+		return nil, err
 	}
 
 	var scalar graphql.Type
 	if info.baseType.PkgPath() == "" {
 		// builtin
 		switch info.baseType.Kind() {
-		case reflect.Int, reflect.Int64, reflect.Int32, reflect.Uint, reflect.Uint64, reflect.Uint32:
-			scalar = graphql.Int
-		case reflect.Int8, reflect.Int16, reflect.Uint8, reflect.Uint16:
+		case reflect.Int, reflect.Int64, reflect.Int32, reflect.Uint, reflect.Uint64, reflect.Uint32,
+			reflect.Int8, reflect.Int16, reflect.Uint8, reflect.Uint16:
 			scalar = graphql.Int
 		case reflect.Float32, reflect.Float64:
 			scalar = graphql.Float
@@ -35,9 +34,8 @@ func (my *Engine) asBuiltinScalar(field *reflect.StructField) (graphql.Type, *ty
 	}
 
 	if scalar == nil {
-		return nil, &info, nil
+		return nil, nil
 	}
 
-	scalar = wrapType(field, scalar, info.array)
-	return scalar, &info, nil
+	return wrapType(field.Type, scalar), nil
 }

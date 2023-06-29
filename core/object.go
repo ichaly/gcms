@@ -5,14 +5,36 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/iancoleman/strcase"
 	"reflect"
-)
-
-var (
-	_objectType = reflect.TypeOf((*Object)(nil)).Elem()
+	"strings"
 )
 
 type Object interface {
 	GqlDescription() string
+}
+
+func parseFieldType(field *reflect.StructField, parsers []fieldParser, errString string) (graphql.Type, error) {
+	for _, check := range parsers {
+		typ, err := check(field)
+		if err != nil {
+			return nil, err
+		}
+		if typ == nil {
+			continue
+		}
+		return typ, nil
+	}
+	return nil, fmt.Errorf("unsupported type('%s') for %s '%s'", field.Type.String(), errString, field.Name)
+}
+
+func description(field *reflect.StructField) string {
+	tag := field.Tag.Get("gorm")
+	tags := strings.Split(tag, ";")
+	for _, t := range tags {
+		if strings.HasPrefix(t, "comment:") {
+			return t[8:]
+		}
+	}
+	return ""
 }
 
 func (my *Engine) unwrapObjectFields(baseType reflect.Type, object *graphql.Object, depth int) error {
@@ -33,19 +55,18 @@ func (my *Engine) unwrapObjectFields(baseType reflect.Type, object *graphql.Obje
 			}
 			continue
 		}
-		fieldType, _, err := parseField(&f, my.objectFieldParsers, "object field")
+
+		var fieldType graphql.Type
+		fieldType, err := parseFieldType(&f, my.fieldParsers, "object field")
 		if err != nil {
 			return err
 		}
 		if fieldType == nil {
 			panic(fmt.Errorf("unsupported field type: %s", f.Type.String()))
 		}
-		object.AddFieldConfig(strcase.ToLowerCamel(f.Name), &graphql.Field{
-			Type:        fieldType,
-			Description: description(&f),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return nil, nil
-			},
+		fieldName := strcase.ToLowerCamel(f.Name)
+		object.AddFieldConfig(fieldName, &graphql.Field{
+			Type: fieldType, Description: description(&f),
 		})
 	}
 	return nil
@@ -55,11 +76,13 @@ func (my *Engine) parseObject(info *typeInfo) (*graphql.Object, error) {
 	if obj, ok := my.types[info.baseType]; ok {
 		return obj.(*graphql.Object), nil
 	}
-	prototype, ok := newPrototype(info.implType).(Object)
 	name, desc := info.baseType.Name(), ""
+
+	prototype, ok := newPrototype(info.implType).(Object)
 	if prototype != nil && ok {
 		desc = prototype.GqlDescription()
 	}
+
 	object := graphql.NewObject(graphql.ObjectConfig{
 		Name: name, Description: desc, Fields: graphql.Fields{},
 	})
@@ -71,38 +94,14 @@ func (my *Engine) parseObject(info *typeInfo) (*graphql.Object, error) {
 	return object, nil
 }
 
-func (my *Engine) asObjectField(field *reflect.StructField) (graphql.Type, *typeInfo, error) {
-	isObj, info, err := implementsOf(field.Type, _objectType)
-	if err != nil {
-		return nil, &info, err
-	}
-	if !isObj {
-		info, err = unwrap(field.Type)
-		if err != nil {
-			return nil, &info, err
-		}
-	}
-	typ, err := my.parseObject(&info)
-	if err != nil {
-		return nil, nil, err
-	}
-	return wrapType(field, typ, info.array), &info, nil
-}
-
-func (my *Engine) registerObject(p reflect.Type) (*graphql.Object, error) {
-	isObj, info, err := implementsOf(p, _objectType)
+func (my *Engine) asObjectField(field *reflect.StructField) (graphql.Type, error) {
+	info, err := unwrap(field.Type)
 	if err != nil {
 		return nil, err
 	}
-	if !isObj {
-		info, err = unwrap(p)
-		if err != nil {
-			return nil, err
-		}
+	typ, err := my.parseObject(&info)
+	if err != nil {
+		return nil, err
 	}
-	return my.parseObject(&info)
-}
-
-func (my *Engine) RegisterObject(prototype interface{}) (*graphql.Object, error) {
-	return my.registerObject(reflect.TypeOf(prototype))
+	return wrapType(field.Type, typ), nil
 }

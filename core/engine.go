@@ -3,47 +3,90 @@ package core
 import (
 	"github.com/graphql-go/graphql"
 	"github.com/iancoleman/strcase"
-	"github.com/ichaly/gcms/base"
-	"gorm.io/gorm"
+	"github.com/pkg/errors"
 	"reflect"
 )
 
 type Engine struct {
-	Query              *graphql.Object
-	Mutation           *graphql.Object
-	Subscription       *graphql.Object
-	types              map[reflect.Type]graphql.Type
-	objectFieldParsers []fieldParser
+	config       graphql.SchemaConfig
+	types        map[reflect.Type]graphql.Type
+	fieldParsers []fieldParser
 }
 
-func NewEngine(eg base.EntityGroup, db *gorm.DB) (*Engine, error) {
+func NewEngine() (*Engine, error) {
 	my := &Engine{
-		types: make(map[reflect.Type]graphql.Type),
+		config: graphql.SchemaConfig{},
+		types: map[reflect.Type]graphql.Type{
+			_queryType: q, _mutationType: m, _subscriptionType: s,
+		},
 	}
-	my.objectFieldParsers = []fieldParser{
-		my.asBuiltinScalar,
+	my.fieldParsers = []fieldParser{
+		my.asBuiltinScalarField,
+		my.asCustomScalarField,
 		my.asIdField,
 		my.asEnumField,
 		my.asObjectField,
-		my.asCustomScalarField,
-	}
-	my.Query = graphql.NewObject(graphql.ObjectConfig{
-		Name: "Query", Description: "Root Query", Fields: graphql.Fields{},
-	})
-	for _, v := range eg.Entities {
-		obj, err := my.RegisterObject(v)
-		if err != nil {
-			return nil, err
-		}
-		name := strcase.ToLowerCamel(obj.Name())
-		my.Query.AddFieldConfig(name, &graphql.Field{
-			Type:        obj,
-			Args:        map[string]*graphql.ArgumentConfig{},
-			Description: obj.Description(),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return nil, nil
-			},
-		})
 	}
 	return my, nil
+}
+
+func (my *Engine) Schema() (graphql.Schema, error) {
+	if len(q.Fields()) > 0 {
+		my.config.Query = q
+	}
+	if len(m.Fields()) > 0 {
+		my.config.Mutation = m
+	}
+	if len(s.Fields()) > 0 {
+		my.config.Subscription = s
+	}
+	return graphql.NewSchema(my.config)
+}
+
+func (my *Engine) AddTo(source interface{}, target reflect.Type) error {
+	src := reflect.TypeOf(source)
+	_, ok := my.types[src]
+	if ok {
+		return errors.New("source type already registered")
+	}
+
+	if src == target {
+		return errors.New("source and target are the same")
+	}
+
+	val, ok := my.types[target]
+	if !ok {
+		return errors.New("target type not registered")
+	}
+
+	obj, ok := val.(*graphql.Object)
+	if !ok {
+		return errors.New("source type not an object")
+	}
+
+	info, err := unwrap(src)
+	if err != nil {
+		return err
+	}
+	node, err := my.parseObject(&info)
+	if err != nil {
+		return err
+	}
+	name := strcase.ToLowerCamel(node.Name())
+	obj.AddFieldConfig(name, &graphql.Field{
+		Type: node, Description: node.Description(),
+	})
+	return nil
+}
+
+func (my *Engine) AddQuery(source interface{}) error {
+	return my.AddTo(source, _queryType)
+}
+
+func (my *Engine) AddMutation(source interface{}) error {
+	return my.AddTo(source, _mutationType)
+}
+
+func (my *Engine) AddSubscription(source interface{}) error {
+	return my.AddTo(source, _subscriptionType)
 }

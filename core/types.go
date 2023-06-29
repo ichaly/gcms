@@ -3,11 +3,7 @@ package core
 import (
 	"fmt"
 	"github.com/graphql-go/graphql"
-	"github.com/iancoleman/strcase"
 	"reflect"
-	"runtime"
-	"strconv"
-	"strings"
 )
 
 type typeInfo struct {
@@ -17,18 +13,31 @@ type typeInfo struct {
 	baseType reflect.Type
 }
 
-type fieldParser func(field *reflect.StructField) (graphql.Type, *typeInfo, error)
+type fieldParser func(field *reflect.StructField) (graphql.Type, error)
 
-func description(field *reflect.StructField) string {
-	tag := field.Tag.Get("gorm")
-	tags := strings.Split(tag, ";")
-	for _, t := range tags {
-		if strings.HasPrefix(t, "comment:") {
-			return t[8:]
-		}
-	}
-	return ""
-}
+type (
+	queryStruct        struct{}
+	mutationStruct     struct{}
+	subscriptionStruct struct{}
+)
+
+var (
+	_queryType        = reflect.TypeOf((*queryStruct)(nil)).Elem()
+	_mutationType     = reflect.TypeOf((*mutationStruct)(nil)).Elem()
+	_subscriptionType = reflect.TypeOf((*subscriptionStruct)(nil)).Elem()
+)
+
+var (
+	q = graphql.NewObject(graphql.ObjectConfig{
+		Name: "Query", Fields: graphql.Fields{},
+	})
+	m = graphql.NewObject(graphql.ObjectConfig{
+		Name: "Mutation", Fields: graphql.Fields{},
+	})
+	s = graphql.NewObject(graphql.ObjectConfig{
+		Name: "Subscription", Fields: graphql.Fields{},
+	})
+)
 
 func isPrimitive(p reflect.Type) bool {
 	switch p.Kind() {
@@ -66,8 +75,8 @@ func unwrap(p reflect.Type) (typeInfo, error) {
 	default:
 		if isPrimitive(p) {
 			return typeInfo{
-				baseType: p,
 				ptrType:  reflect.New(p).Type(), // fixme: optimize for performance here
+				baseType: p,
 				implType: p,
 			}, nil
 		}
@@ -135,20 +144,6 @@ func implementsOf(p reflect.Type, intf reflect.Type) (implemented bool, info typ
 	return
 }
 
-func newPrototype(p reflect.Type) interface{} {
-	elem := false
-	if p.Kind() == reflect.Ptr {
-		p = p.Elem()
-	} else {
-		elem = true
-	}
-	v := reflect.New(p)
-	if elem {
-		v = v.Elem()
-	}
-	return v.Interface()
-}
-
 func newNonNull(t graphql.Type) graphql.Type {
 	if _, ok := t.(*graphql.NonNull); !ok {
 		t = graphql.NewNonNull(t)
@@ -163,64 +158,27 @@ func newList(t graphql.Type) graphql.Type {
 	return t
 }
 
-func wrapType(field *reflect.StructField, t graphql.Type, isArray bool) graphql.Type {
-	if isArray {
-		if isElementRequired(field) {
-			t = newNonNull(t)
-		}
-		t = newList(t)
-		if isRequired(field) {
-			t = newNonNull(t)
-		}
+func wrapType(p reflect.Type, t graphql.Type) graphql.Type {
+	switch p.Kind() {
+	case reflect.Slice, reflect.Array:
+		return newList(wrapType(p.Elem(), t))
+	case reflect.Ptr:
+		return wrapType(p.Elem(), t)
+	default:
+		return newNonNull(t)
+	}
+}
+
+func newPrototype(p reflect.Type) interface{} {
+	elem := false
+	if p.Kind() == reflect.Ptr {
+		p = p.Elem()
 	} else {
-		if isRequired(field) {
-			t = newNonNull(t)
-		}
+		elem = true
 	}
-	return t
+	v := reflect.New(p)
+	if elem {
+		v = v.Elem()
+	}
+	return v.Interface()
 }
-
-func parseField(field *reflect.StructField, parsers []fieldParser, errString string) (graphql.Type, *typeInfo, error) {
-	for _, check := range parsers {
-		typ, info, err := check(field)
-		if err != nil {
-			return nil, info, err
-		}
-		if typ == nil {
-			continue
-		}
-		return typ, info, nil
-	}
-	return nil, nil, fmt.Errorf("unsupported type('%s') for %s '%s'", field.Type.String(), errString, field.Name)
-}
-
-func getFuncName(fn interface{}) string {
-	name := runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
-	if dot := strings.LastIndex(name, "."); dot >= 0 {
-		return name[dot+1:]
-	}
-	return name
-}
-
-func getEntryFuncName(fn interface{}) string {
-	return strcase.ToLowerCamel(getFuncName(fn))
-}
-
-func boolTag(field *reflect.StructField, tagName string) bool {
-	v, ok := field.Tag.Lookup(tagName)
-	if !ok {
-		return false
-	}
-	if v == "" {
-		return true
-	}
-	positive, err := strconv.ParseBool(v)
-	if err != nil {
-		return false
-	}
-	return positive
-}
-
-func isRequired(field *reflect.StructField) bool { return boolTag(field, "gqlRequired") }
-
-func isElementRequired(field *reflect.StructField) bool { return boolTag(field, "gqlElementRequired") }

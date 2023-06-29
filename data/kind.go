@@ -23,13 +23,13 @@ func (my Kind) Value() (driver.Value, error) {
 }
 
 func (Kind) GqlDescription() string {
-	return "The episodes in the Star Wars trilogy"
+	return "Content type"
 }
 
 func (Kind) GqlEnumValues() map[string]*graphql.EnumValueConfig {
 	return map[string]*graphql.EnumValueConfig{
-		"MOMENT":   {Value: Moment, Description: "Star Wars Episode IV: A New Hope, released in 1977."},
-		"QUESTION": {Value: Question, Description: "Star Wars Episode V: The Empire Strikes Back, released in 1980."},
-		"ANSWER":   {Value: Answer, Description: "Star Wars Episode VI: Return of the Jedi, released in 1983."},
+		"MOMENT":   {Value: Moment, Description: "动态"},
+		"ANSWER":   {Value: Answer, Description: "回答"},
+		"QUESTION": {Value: Question, Description: "问题"},
 	}
 }
