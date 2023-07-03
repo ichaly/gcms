@@ -62,7 +62,7 @@ func (my *Engine) asBuiltinScalarField(field *reflect.StructField) (graphql.Type
 		}
 	} else {
 		switch info.baseType.String() {
-		case "time.Time":
+		case "time.Time", "gorm.DeletedAt":
 			scalar = graphql.DateTime
 		}
 	}

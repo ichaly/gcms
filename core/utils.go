@@ -6,13 +6,6 @@ import (
 	"reflect"
 )
 
-func Name(typ reflect.Type) string {
-	if typ.Kind() == reflect.Ptr {
-		return typ.Elem().Name()
-	}
-	return typ.Name()
-}
-
 func isPrimitive(p reflect.Type) bool {
 	switch p.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
