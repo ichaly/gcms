@@ -13,19 +13,17 @@ type Enum interface {
 }
 
 func (my *Engine) parseEnum(info *typeInfo) *graphql.Enum {
-	if d, ok := my.types[info.baseType]; ok {
+	name := info.baseType.Name()
+	if d, ok := my.types[name]; ok {
 		return d.(*graphql.Enum)
 	}
 	enum := newPrototype(info.implType).(Enum)
-
-	name := info.baseType.Name()
-
 	d := graphql.NewEnum(graphql.EnumConfig{
 		Name:        name,
 		Description: enum.GqlDescription(),
 		Values:      enum.GqlEnumValues(),
 	})
-	my.types[info.baseType] = d
+	my.types[name] = d
 	return d
 }
 

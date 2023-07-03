@@ -9,20 +9,14 @@ import (
 )
 
 type Engine struct {
-	config       graphql.SchemaConfig
-	types        map[reflect.Type]graphql.Type
+	types        map[string]graphql.Type
 	fieldParsers []fieldParser
 }
 
 func NewEngine() (*Engine, error) {
-	my := &Engine{
-		config: graphql.SchemaConfig{Types: []graphql.Type{
-			Void, Cursor, SortDirection,
-		}},
-		types: map[reflect.Type]graphql.Type{
-			_queryType: q, _mutationType: m, _subscriptionType: s,
-		},
-	}
+	my := &Engine{types: map[string]graphql.Type{
+		"Query": q, "Mutation": m, "Subscription": s,
+	}}
 	my.fieldParsers = []fieldParser{
 		my.asBuiltinScalarField,
 		my.asCustomScalarField,
@@ -34,27 +28,29 @@ func NewEngine() (*Engine, error) {
 }
 
 func (my *Engine) Schema() (graphql.Schema, error) {
+	config := graphql.SchemaConfig{}
 	if len(q.Fields()) > 0 {
-		my.config.Query = q
+		config.Query = q
 	}
 	if len(m.Fields()) > 0 {
-		my.config.Mutation = m
+		config.Mutation = m
 	}
 	if len(s.Fields()) > 0 {
-		my.config.Subscription = s
+		config.Subscription = s
 	}
-	return graphql.NewSchema(my.config)
+	return graphql.NewSchema(config)
 }
 
-func (my *Engine) AddTo(source interface{}, target reflect.Type) error {
-	src := reflect.TypeOf(source)
-	_, ok := my.types[src]
+func (my *Engine) AddTo(source interface{}, target string) error {
+	info, err := unwrap(reflect.TypeOf(source))
+	if err != nil {
+		return err
+	}
+	name := info.baseType.Name()
+
+	_, ok := my.types[name]
 	if ok {
 		return errors.New("source type already registered")
-	}
-
-	if src == target {
-		return errors.New("source and target are the same")
 	}
 
 	val, ok := my.types[target]
@@ -67,50 +63,46 @@ func (my *Engine) AddTo(source interface{}, target reflect.Type) error {
 		return errors.New("source type not an object")
 	}
 
-	info, err := unwrap(src)
-	if err != nil {
-		return err
-	}
 	node, err := my.parseObject(&info)
 	if err != nil {
 		return err
 	}
-	name := strcase.ToLowerCamel(node.Name())
 	keys := maps.Keys(node.Fields())
 	sortFields := graphql.InputObjectConfigFieldMap{}
 	for _, k := range keys {
 		sortFields[k] = &graphql.InputObjectFieldConfig{Type: SortDirection}
 	}
-	sortType := graphql.NewInputObject(graphql.InputObjectConfig{
-		Name: node.Name() + "SortInput", Fields: sortFields,
-	})
 	queryFields := graphql.FieldConfigArgument{
 		"id":         {Type: graphql.ID},
 		"size":       {Type: graphql.Int},
 		"page":       {Type: graphql.Int},
 		"top":        {Type: graphql.Int},
 		"last":       {Type: graphql.Int},
+		"search":     {Type: graphql.String},
 		"after":      {Type: Cursor},
 		"before":     {Type: Cursor},
-		"search":     {Type: graphql.String},
-		"sort":       {Type: sortType},
-		"where":      {Type: graphql.String},
 		"distinctOn": {Type: graphql.NewList(graphql.String)},
+		"sort": {Type: graphql.NewInputObject(graphql.InputObjectConfig{
+			Name: node.Name() + "SortInput", Fields: sortFields,
+		})},
+		"where": {Type: graphql.NewInputObject(graphql.InputObjectConfig{
+			Name: node.Name() + "WhereInput", Fields: sortFields,
+		})},
 	}
-	obj.AddFieldConfig(name, &graphql.Field{
+	obj.AddFieldConfig(strcase.ToLowerCamel(node.Name()), &graphql.Field{
 		Type: node, Args: queryFields, Description: node.Description(),
 	})
 	return nil
 }
 
 func (my *Engine) AddQuery(source interface{}) error {
-	return my.AddTo(source, _queryType)
+	return my.AddTo(source, Query)
 }
 
 func (my *Engine) AddMutation(source interface{}) error {
-	return my.AddTo(source, _mutationType)
+	return my.AddTo(source, Mutation)
 }
 
 func (my *Engine) AddSubscription(source interface{}) error {
-	return my.AddTo(source, _subscriptionType)
+	return my.AddTo(source, Subscription)
 }

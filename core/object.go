@@ -73,10 +73,10 @@ func (my *Engine) unwrapObjectFields(baseType reflect.Type, object *graphql.Obje
 }
 
 func (my *Engine) parseObject(info *typeInfo) (*graphql.Object, error) {
-	if obj, ok := my.types[info.baseType]; ok {
+	name, desc := info.baseType.Name(), ""
+	if obj, ok := my.types[name]; ok {
 		return obj.(*graphql.Object), nil
 	}
-	name, desc := info.baseType.Name(), ""
 
 	prototype, ok := newPrototype(info.implType).(Object)
 	if prototype != nil && ok {
@@ -86,7 +86,7 @@ func (my *Engine) parseObject(info *typeInfo) (*graphql.Object, error) {
 	object := graphql.NewObject(graphql.ObjectConfig{
 		Name: name, Description: desc, Fields: graphql.Fields{},
 	})
-	my.types[info.baseType] = object
+	my.types[name] = object
 	err := my.unwrapObjectFields(info.baseType, object, 0)
 	if err != nil {
 		return nil, err

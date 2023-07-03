@@ -15,13 +15,11 @@ type Scalar interface {
 }
 
 func (my *Engine) parseCustomScalar(info *typeInfo) *graphql.Scalar {
-	if s, ok := my.types[info.baseType]; ok {
+	name := info.baseType.Name()
+	if s, ok := my.types[name]; ok {
 		return s.(*graphql.Scalar)
 	}
-
 	scalar := newPrototype(info.implType).(Scalar)
-
-	name := info.baseType.Name()
 
 	literalParsing := func(valueAST ast.Value) interface{} {
 		s := newPrototype(info.implType).(Scalar)
@@ -45,7 +43,7 @@ func (my *Engine) parseCustomScalar(info *typeInfo) *graphql.Scalar {
 		},
 		ParseLiteral: literalParsing,
 	})
-	my.types[info.baseType] = d
+	my.types[name] = d
 	return d
 }
 
