@@ -16,9 +16,9 @@ type Engine struct {
 
 func NewEngine() (*Engine, error) {
 	my := &Engine{
-		config: graphql.SchemaConfig{
-			Types: []graphql.Type{Cursor, Void, OrderDirection},
-		},
+		config: graphql.SchemaConfig{Types: []graphql.Type{
+			Void, Cursor, SortDirection,
+		}},
 		types: map[reflect.Type]graphql.Type{
 			_queryType: q, _mutationType: m, _subscriptionType: s,
 		},
@@ -77,28 +77,28 @@ func (my *Engine) AddTo(source interface{}, target reflect.Type) error {
 	}
 	name := strcase.ToLowerCamel(node.Name())
 	keys := maps.Keys(node.Fields())
-	fields := graphql.InputObjectConfigFieldMap{}
+	sortFields := graphql.InputObjectConfigFieldMap{}
 	for _, k := range keys {
-		fields[k] = &graphql.InputObjectFieldConfig{Type: OrderDirection}
+		sortFields[k] = &graphql.InputObjectFieldConfig{Type: SortDirection}
 	}
-	orderByType := graphql.NewInputObject(graphql.InputObjectConfig{
-		Name: node.Name() + "OrderByInput", Fields: fields,
+	sortType := graphql.NewInputObject(graphql.InputObjectConfig{
+		Name: node.Name() + "SortInput", Fields: sortFields,
 	})
+	queryFields := graphql.FieldConfigArgument{
+		"id":         {Type: graphql.ID},
+		"size":       {Type: graphql.Int},
+		"page":       {Type: graphql.Int},
+		"top":        {Type: graphql.Int},
+		"last":       {Type: graphql.Int},
+		"after":      {Type: Cursor},
+		"before":     {Type: Cursor},
+		"search":     {Type: graphql.String},
+		"sort":       {Type: sortType},
+		"where":      {Type: graphql.String},
+		"distinctOn": {Type: graphql.NewList(graphql.String)},
+	}
 	obj.AddFieldConfig(name, &graphql.Field{
-		Type: node, Description: node.Description(),
-		Args: map[string]*graphql.ArgumentConfig{
-			"id":         {Type: graphql.ID},
-			"limit":      {Type: graphql.Int},
-			"offset":     {Type: graphql.Int},
-			"first":      {Type: graphql.Int},
-			"last":       {Type: graphql.Int},
-			"after":      {Type: Cursor},
-			"before":     {Type: Cursor},
-			"search":     {Type: graphql.String},
-			"orderBy":    {Type: orderByType},
-			"where":      {Type: graphql.String},
-			"distinctOn": {Type: graphql.NewList(graphql.String)},
-		},
+		Type: node, Args: queryFields, Description: node.Description(),
 	})
 	return nil
 }
