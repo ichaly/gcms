@@ -14,7 +14,7 @@ type Scalar interface {
 	GqlScalarParseValue(value interface{})
 }
 
-func (my *Engine) parseCustomScalar(info *typeInfo) *graphql.Scalar {
+func (my *Engine) buildCustomScalar(info *typeInfo) *graphql.Scalar {
 	name := info.baseType.Name()
 	if s, ok := my.types[name]; ok {
 		return s.(*graphql.Scalar)
@@ -55,6 +55,6 @@ func (my *Engine) asCustomScalarField(field *reflect.StructField) (graphql.Type,
 	if !isScalar {
 		return nil, nil
 	}
-	typ := my.parseCustomScalar(&info)
+	typ := my.buildCustomScalar(&info)
 	return wrapType(field.Type, typ), nil
 }

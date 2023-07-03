@@ -69,8 +69,6 @@ type __inputValue struct {
 	Description string
 }
 
-var scalars = []graphql.Type{graphql.ID, graphql.Int, graphql.Float, graphql.String, graphql.Boolean, graphql.DateTime}
-
 var expNull = []__inputValue{
 	{Name: "isNull", Type: graphql.Boolean, Description: "Is value null (true) or not null (false)"},
 }
@@ -97,36 +95,4 @@ var expScalar = []__inputValue{
 	{Name: "notRegex", Description: "Value not matching regex pattern"},
 	{Name: "iRegex", Description: "Value matches (case-insensitive) regex pattern"},
 	{Name: "notIRegex", Description: "Value not matching (case-insensitive) regex pattern"},
-}
-
-func (my *Engine) Expressions() {
-	for i, v := range scalars {
-		list := append(expNull, expScalar...)
-		fields := graphql.InputObjectConfigFieldMap{}
-		for _, e := range list {
-			if e.Type == nil {
-				e.Type = v
-			}
-			fields[e.Name] = &graphql.InputObjectFieldConfig{Type: e.Type, Description: e.Description}
-		}
-		name := v.Name() + "Expression"
-		my.types[name] = graphql.NewInputObject(graphql.InputObjectConfig{
-			Name: name, Fields: fields,
-		})
-		if i == 0 {
-			continue
-		}
-		list = append(expNull, expList...)
-		fields = graphql.InputObjectConfigFieldMap{}
-		for _, e := range list {
-			if e.Type == nil {
-				e.Type = v
-			}
-			fields[e.Name] = &graphql.InputObjectFieldConfig{Type: e.Type, Description: e.Description}
-		}
-		name = v.Name() + "ListExpression"
-		my.types[name] = graphql.NewInputObject(graphql.InputObjectConfig{
-			Name: name, Fields: fields,
-		})
-	}
 }

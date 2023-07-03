@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/graphql-go/graphql"
 	"reflect"
+	"strings"
 )
 
 func isPrimitive(p reflect.Type) bool {
@@ -148,4 +149,29 @@ func newPrototype(p reflect.Type) interface{} {
 		v = v.Elem()
 	}
 	return v.Interface()
+}
+
+func parseFieldType(field *reflect.StructField, parsers []fieldParser, errString string) (graphql.Type, error) {
+	for _, check := range parsers {
+		typ, err := check(field)
+		if err != nil {
+			return nil, err
+		}
+		if typ == nil {
+			continue
+		}
+		return typ, nil
+	}
+	return nil, fmt.Errorf("unsupported type('%s') for %s '%s'", field.Type.String(), errString, field.Name)
+}
+
+func description(field *reflect.StructField) string {
+	tag := field.Tag.Get("gorm")
+	tags := strings.Split(tag, ";")
+	for _, t := range tags {
+		if strings.HasPrefix(t, "comment:") {
+			return t[8:]
+		}
+	}
+	return ""
 }

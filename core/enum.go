@@ -12,7 +12,7 @@ type Enum interface {
 	GqlEnumValues() map[string]*graphql.EnumValueConfig
 }
 
-func (my *Engine) parseEnum(info *typeInfo) *graphql.Enum {
+func (my *Engine) buildEnum(info *typeInfo) *graphql.Enum {
 	name := info.baseType.Name()
 	if d, ok := my.types[name]; ok {
 		return d.(*graphql.Enum)
@@ -35,6 +35,6 @@ func (my *Engine) asEnumField(field *reflect.StructField) (graphql.Type, error) 
 	if !isEnum {
 		return nil, nil
 	}
-	typ := my.parseEnum(&info)
+	typ := my.buildEnum(&info)
 	return wrapType(field.Type, typ), nil
 }

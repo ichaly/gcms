@@ -5,36 +5,10 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/iancoleman/strcase"
 	"reflect"
-	"strings"
 )
 
 type Object interface {
 	GqlDescription() string
-}
-
-func parseFieldType(field *reflect.StructField, parsers []fieldParser, errString string) (graphql.Type, error) {
-	for _, check := range parsers {
-		typ, err := check(field)
-		if err != nil {
-			return nil, err
-		}
-		if typ == nil {
-			continue
-		}
-		return typ, nil
-	}
-	return nil, fmt.Errorf("unsupported type('%s') for %s '%s'", field.Type.String(), errString, field.Name)
-}
-
-func description(field *reflect.StructField) string {
-	tag := field.Tag.Get("gorm")
-	tags := strings.Split(tag, ";")
-	for _, t := range tags {
-		if strings.HasPrefix(t, "comment:") {
-			return t[8:]
-		}
-	}
-	return ""
 }
 
 func (my *Engine) unwrapObjectFields(baseType reflect.Type, object *graphql.Object, depth int) error {
@@ -72,7 +46,7 @@ func (my *Engine) unwrapObjectFields(baseType reflect.Type, object *graphql.Obje
 	return nil
 }
 
-func (my *Engine) parseObject(info *typeInfo) (*graphql.Object, error) {
+func (my *Engine) buildObject(info *typeInfo) (*graphql.Object, error) {
 	name, desc := info.baseType.Name(), ""
 	if obj, ok := my.types[name]; ok {
 		return obj.(*graphql.Object), nil
@@ -91,6 +65,9 @@ func (my *Engine) parseObject(info *typeInfo) (*graphql.Object, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	my.buildSortInput(object)
+	my.buildWhereInput(object)
 	return object, nil
 }
 
@@ -99,7 +76,7 @@ func (my *Engine) asObjectField(field *reflect.StructField) (graphql.Type, error
 	if err != nil {
 		return nil, err
 	}
-	typ, err := my.parseObject(&info)
+	typ, err := my.buildObject(&info)
 	if err != nil {
 		return nil, err
 	}

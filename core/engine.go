@@ -1,11 +1,9 @@
 package core
 
 import (
-	"fmt"
 	"github.com/graphql-go/graphql"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
-	"golang.org/x/exp/maps"
 	"reflect"
 )
 
@@ -16,9 +14,8 @@ type Engine struct {
 
 func NewEngine() (*Engine, error) {
 	my := &Engine{types: map[string]graphql.Type{
-		"Query": q, "Mutation": m, "Subscription": s,
+		Query: q, Mutation: m, Subscription: s,
 	}}
-	my.Expressions()
 	my.fieldParsers = []fieldParser{
 		my.asBuiltinScalarField,
 		my.asCustomScalarField,
@@ -59,54 +56,10 @@ func (my *Engine) AddTo(source interface{}, target string) error {
 		return errors.New("source type not an object")
 	}
 
-	node, err := my.parseObject(&info)
+	node, err := my.buildObject(&info)
 	if err != nil {
 		return err
 	}
-	keys := maps.Keys(node.Fields())
-
-	sortFields := graphql.InputObjectConfigFieldMap{}
-	for _, k := range keys {
-		sortFields[k] = &graphql.InputObjectFieldConfig{Type: SortDirection}
-	}
-	sortInput := graphql.NewInputObject(graphql.InputObjectConfig{
-		Name: node.Name() + "SortInput", Fields: sortFields,
-	})
-
-	whereFields := graphql.InputObjectConfigFieldMap{}
-	for k, v := range node.Fields() {
-		t := v.Type
-		suffix := "Expression"
-		if val, ok := t.(*graphql.NonNull); ok {
-			t = val.OfType
-		}
-		if val, ok := t.(*graphql.List); ok {
-			t = val.OfType
-			suffix = "List" + suffix
-		}
-		if val, ok := t.(*graphql.NonNull); ok {
-			t = val.OfType
-		}
-		name := t.Name()
-		if val, ok := t.(*graphql.Enum); ok {
-			t = val
-		} else {
-			name = name + suffix
-		}
-		typ, ok := my.types[name]
-		if ok {
-			whereFields[k] = &graphql.InputObjectFieldConfig{Type: typ}
-		} else {
-			fmt.Println("not found", name)
-		}
-	}
-	whereInput := graphql.NewInputObject(graphql.InputObjectConfig{
-		Name: node.Name() + "WhereInput", Fields: whereFields,
-	})
-
-	whereFields["or"] = &graphql.InputObjectFieldConfig{Type: whereInput}
-	whereFields["and"] = &graphql.InputObjectFieldConfig{Type: whereInput}
-	whereFields["not"] = &graphql.InputObjectFieldConfig{Type: whereInput}
 
 	queryFields := graphql.FieldConfigArgument{
 		"id":         {Type: graphql.ID},
@@ -114,12 +67,12 @@ func (my *Engine) AddTo(source interface{}, target string) error {
 		"page":       {Type: graphql.Int},
 		"top":        {Type: graphql.Int},
 		"last":       {Type: graphql.Int},
-		"search":     {Type: graphql.String},
 		"after":      {Type: Cursor},
 		"before":     {Type: Cursor},
-		"sort":       {Type: sortInput},
-		"where":      {Type: whereInput},
+		"search":     {Type: graphql.String},
 		"distinctOn": {Type: graphql.NewList(graphql.String)},
+		"sort":       {Type: my.types[node.Name()+"SortInput"]},
+		"where":      {Type: my.types[node.Name()+"WhereInput"]},
 	}
 	obj.AddFieldConfig(strcase.ToLowerCamel(node.Name()), &graphql.Field{
 		Type: node, Args: queryFields, Description: node.Description(),
