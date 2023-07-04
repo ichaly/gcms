@@ -61,7 +61,7 @@ func (my *Engine) AddTo(source interface{}, target string) error {
 		return err
 	}
 
-	queryFields := graphql.FieldConfigArgument{
+	queryArgs := graphql.FieldConfigArgument{
 		"id":         {Type: graphql.ID},
 		"size":       {Type: graphql.Int},
 		"page":       {Type: graphql.Int},
@@ -75,7 +75,7 @@ func (my *Engine) AddTo(source interface{}, target string) error {
 		"where":      {Type: my.types[node.Name()+"WhereInput"]},
 	}
 	obj.AddFieldConfig(strcase.ToLowerCamel(node.Name()), &graphql.Field{
-		Type: node, Args: queryFields, Description: node.Description(),
+		Type: node, Args: queryArgs, Description: node.Description(),
 	})
 	return nil
 }
