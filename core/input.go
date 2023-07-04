@@ -6,7 +6,7 @@ import (
 
 func (my *Engine) buildExpressionInput(t graphql.Type) graphql.Type {
 	var name string
-	var list []__inputValue
+	var list []__input
 	var isList bool
 
 	list = append(list, expNull...)

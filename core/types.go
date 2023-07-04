@@ -32,53 +32,22 @@ var (
 	})
 )
 
-var SortDirection = graphql.NewEnum(graphql.EnumConfig{
-	Name:        "SortDirection",
-	Description: "The direction of result ordering",
-	Values: graphql.EnumValueConfigMap{
-		"ASC": &graphql.EnumValueConfig{
-			Value:       "ASC",
-			Description: "Ascending order",
-		},
-		"DESC": &graphql.EnumValueConfig{
-			Value:       "DESC",
-			Description: "Descending order",
-		},
-		"ASC_NULLS_FIRST": &graphql.EnumValueConfig{
-			Value:       "ASC_NULLS_FIRST",
-			Description: "Ascending nulls first order",
-		},
-		"DESC_NULLS_FIRST": &graphql.EnumValueConfig{
-			Value:       "DESC_NULLS_FIRST",
-			Description: "Descending nulls first order",
-		},
-		"ASC_NULLS_LAST": &graphql.EnumValueConfig{
-			Value:       "ASC_NULLS_LAST",
-			Description: "Ascending nulls last order",
-		},
-		"DESC_NULLS_LAST": &graphql.EnumValueConfig{
-			Value:       "DESC_NULLS_LAST",
-			Description: "Descending nulls last order",
-		},
-	},
-})
-
-type __inputValue struct {
+type __input struct {
 	Name        string
 	Type        graphql.Type
 	Description string
 }
 
-var expNull = []__inputValue{
+var expNull = []__input{
 	{Name: "isNull", Type: graphql.Boolean, Description: "Is value null (true) or not null (false)"},
 }
 
-var expList = []__inputValue{
+var expList = []__input{
 	{Name: "in", Description: "Is in list of values"},
 	{Name: "notIn", Description: "Is not in list of values"},
 }
 
-var expScalar = []__inputValue{
+var expScalar = []__input{
 	{Name: "eq", Description: "Equals value"},
 	{Name: "ne", Description: "Does not equal value"},
 	{Name: "gt", Description: "Is greater than value"},
