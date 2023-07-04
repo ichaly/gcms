@@ -41,21 +41,19 @@ func (my *Engine) Schema() (graphql.Schema, error) {
 }
 
 func (my *Engine) AddTo(source interface{}, target string) error {
-	info, err := unwrap(reflect.TypeOf(source))
-	if err != nil {
-		return err
-	}
-
 	val, ok := my.types[target]
 	if !ok {
 		return errors.New("target type not registered")
 	}
-
 	obj, ok := val.(*graphql.Object)
 	if !ok {
 		return errors.New("source type not an object")
 	}
 
+	info, err := unwrap(reflect.TypeOf(source))
+	if err != nil {
+		return err
+	}
 	node, err := my.buildObject(&info)
 	if err != nil {
 		return err
@@ -76,6 +74,9 @@ func (my *Engine) AddTo(source interface{}, target string) error {
 	}
 	obj.AddFieldConfig(strcase.ToLowerCamel(node.Name()), &graphql.Field{
 		Type: node, Args: queryArgs, Description: node.Description(),
+		//Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		//	return nil, nil
+		//},
 	})
 	return nil
 }
