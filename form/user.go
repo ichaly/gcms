@@ -18,15 +18,8 @@ func UserQuery(root *graphql.Object, db *gorm.DB) UserQueryOut {
 		graphql.ObjectConfig{
 			Name: "User",
 			Fields: graphql.Fields{
-				"id": &graphql.Field{
-					Type: graphql.Int,
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						return p.Source.(*data.User).ID, nil
-					},
-				},
-				"name": &graphql.Field{
-					Type: graphql.String,
-				},
+				"id":   &graphql.Field{Type: graphql.ID},
+				"name": &graphql.Field{Type: graphql.String},
 			},
 		},
 	)

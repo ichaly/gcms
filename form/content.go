@@ -42,18 +42,8 @@ func ContentQuery(user *graphql.Object, db *gorm.DB) ContentQueryOut {
 		graphql.ObjectConfig{
 			Name: "Content",
 			Fields: graphql.Fields{
-				"id": &graphql.Field{
-					Type: graphql.Int,
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						return p.Source.(*data.Content).ID, nil
-					},
-				},
-				"title": &graphql.Field{
-					Type: graphql.String,
-					Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-						return p.Source.(*data.Content).Title, nil
-					},
-				},
+				"id":    &graphql.Field{Type: graphql.ID},
+				"title": &graphql.Field{Type: graphql.String},
 			},
 		},
 	)
