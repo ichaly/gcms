@@ -2,7 +2,6 @@ package data
 
 import (
 	"database/sql/driver"
-	"github.com/graphql-go/graphql"
 )
 
 type Kind string
@@ -22,12 +21,20 @@ func (my Kind) Value() (driver.Value, error) {
 	return string(my), nil
 }
 
-func (Kind) GqlDescription() string {
+func (Kind) Description() string {
 	return "Content type"
 }
 
-func (Kind) GqlEnumValues() map[string]*graphql.EnumValueConfig {
-	return map[string]*graphql.EnumValueConfig{
+func (Kind) EnumValues() map[string]*struct {
+	Value             interface{}
+	Description       string
+	DeprecationReason string
+} {
+	return map[string]*struct {
+		Value             interface{}
+		Description       string
+		DeprecationReason string
+	}{
 		"MOMENT":   {Value: Moment, Description: "动态"},
 		"ANSWER":   {Value: Answer, Description: "回答"},
 		"QUESTION": {Value: Question, Description: "问题"},

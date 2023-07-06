@@ -26,24 +26,27 @@ func (my *Engine) buildObject(base reflect.Type) (*graphql.Object, error) {
 		return nil, err
 	}
 
-	obj, ok := my.Types[typ.Name()]
+	obj, ok := my.types[typ.Name()]
 	if ok {
 		return obj.(*graphql.Object), nil
 	}
 
 	desc, name := "", typ.Name()
-	if typ.Implements(_objectType) {
-		desc = typ.(GqlObject).Description()
+	if ptr, ok := newPrototype(typ).(GqlObject); ok {
+		desc = ptr.Description()
 	}
-
 	o := graphql.NewObject(graphql.ObjectConfig{
 		Name: name, Description: desc, Fields: graphql.Fields{},
 	})
-	my.Types[name] = o
+	err = my.parseFields(typ, o, 0)
+	if err != nil {
+		return nil, err
+	}
+	my.types[name] = o
 	return o, nil
 }
 
-func (my *Engine) parseFields(typ reflect.Type, obj *graphql.Object, depth int) error {
+func (my *Engine) parseFields(typ reflect.Type, obj *graphql.Object, dep int) error {
 	for i := 0; i < typ.NumField(); i++ {
 		f := typ.Field(i)
 		if !f.IsExported() {
@@ -54,7 +57,7 @@ func (my *Engine) parseFields(typ reflect.Type, obj *graphql.Object, depth int) 
 			if err != nil {
 				return err
 			}
-			err = my.parseFields(sub, obj, depth+1)
+			err = my.parseFields(sub, obj, dep+1)
 			if err != nil {
 				return err
 			}
@@ -76,7 +79,8 @@ func (my *Engine) parseFields(typ reflect.Type, obj *graphql.Object, depth int) 
 			panic(fmt.Errorf("unsupported field type: %s", f.Type.String()))
 		}
 		obj.AddFieldConfig(f.Name, &graphql.Field{
-			//Type: fieldType, Description: description(&f),
+			Type: fieldType,
+			//Description: description(&f),
 		})
 	}
 	return nil

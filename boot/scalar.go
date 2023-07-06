@@ -34,12 +34,13 @@ func (my *Engine) buildCustomScalar(base reflect.Type) (*graphql.Scalar, error) 
 		return nil, err
 	}
 
-	if val, ok := my.Types[typ.Name()]; ok {
+	if val, ok := my.types[typ.Name()]; ok {
 		return val.(*graphql.Scalar), nil
 	}
 
-	name, desc := typ.Name(), typ.(GqlScalar).Description()
+	ptr := newPrototype(typ).(GqlScalar)
 
+	name, desc := typ.Name(), ptr.Description()
 	s := graphql.NewScalar(graphql.ScalarConfig{
 		Name: name, Description: desc,
 		Serialize: func(value interface{}) interface{} {
@@ -59,6 +60,6 @@ func (my *Engine) buildCustomScalar(base reflect.Type) (*graphql.Scalar, error) 
 			return s
 		},
 	})
-	my.Types[name] = s
+	my.types[name] = s
 	return s, nil
 }

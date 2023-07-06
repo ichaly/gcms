@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/graphql-go/graphql"
 	"reflect"
+	"runtime"
+	"strings"
 )
 
 func isPrim(p reflect.Type) bool {
@@ -70,4 +72,12 @@ func newPrototype(p reflect.Type) interface{} {
 		v = v.Elem()
 	}
 	return v.Interface()
+}
+
+func getFuncName(fn interface{}) string {
+	name := runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
+	if dot := strings.LastIndex(name, "."); dot >= 0 {
+		return name[dot+1:]
+	}
+	return name
 }

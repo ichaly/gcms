@@ -13,7 +13,7 @@ type EntityGroup struct {
 
 type ID uint64
 
-func (my ID) GqlID() {}
+func (my ID) ID() {}
 
 type Primary struct {
 	ID ID `gorm:"primary_key;AUTO_INCREMENT;comment:主键;"`

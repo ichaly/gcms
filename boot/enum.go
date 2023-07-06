@@ -10,9 +10,9 @@ var _enumType = reflect.TypeOf((*GqlEnum)(nil)).Elem()
 type GqlEnum interface {
 	GqlObject
 	EnumValues() map[string]*struct {
-		Value             interface{} `json:"value"`
-		Description       string      `json:"description"`
-		DeprecationReason string      `json:"deprecationReason"`
+		Value             interface{}
+		Description       string
+		DeprecationReason string
 	}
 }
 
@@ -36,13 +36,13 @@ func (my *Engine) buildEnum(base reflect.Type) (*graphql.Enum, error) {
 		return nil, err
 	}
 
-	if val, ok := my.Types[typ.Name()]; ok {
+	if val, ok := my.types[typ.Name()]; ok {
 		return val.(*graphql.Enum), nil
 	}
-
-	name, desc := typ.Name(), typ.(GqlEnum).Description()
+	ptr := newPrototype(typ).(GqlEnum)
+	name, desc := typ.Name(), ptr.Description()
 	values := graphql.EnumValueConfigMap{}
-	for k, v := range typ.(GqlEnum).EnumValues() {
+	for k, v := range ptr.EnumValues() {
 		values[k] = &graphql.EnumValueConfig{
 			Value:             v.Value,
 			Description:       v.Description,
@@ -54,6 +54,6 @@ func (my *Engine) buildEnum(base reflect.Type) (*graphql.Enum, error) {
 		Name: name, Description: desc, Values: values,
 	})
 
-	my.Types[name] = e
+	my.types[name] = e
 	return e, nil
 }

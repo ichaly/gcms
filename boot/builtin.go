@@ -12,15 +12,20 @@ func (my *Engine) asBuiltinScalar(field *reflect.StructField) (graphql.Type, err
 	}
 
 	var scalar graphql.Type
-	switch typ.Kind() {
-	case reflect.Int, reflect.Int64, reflect.Int32, reflect.Uint, reflect.Uint64, reflect.Uint32,
-		reflect.Int8, reflect.Int16, reflect.Uint8, reflect.Uint16:
-		scalar = graphql.Int
-	case reflect.Float32, reflect.Float64:
-		scalar = graphql.Float
-	case reflect.Bool:
-		scalar = graphql.Boolean
-	case reflect.String:
+
+	if typ.PkgPath() == "" {
+		switch typ.Kind() {
+		case reflect.Int, reflect.Int64, reflect.Int32, reflect.Uint, reflect.Uint64, reflect.Uint32,
+			reflect.Int8, reflect.Int16, reflect.Uint8, reflect.Uint16:
+			scalar = graphql.Int
+		case reflect.Float32, reflect.Float64:
+			scalar = graphql.Float
+		case reflect.Bool:
+			scalar = graphql.Boolean
+		case reflect.String:
+			scalar = graphql.String
+		}
+	} else {
 		switch typ.String() {
 		case "time.Time", "gorm.DeletedAt":
 			scalar = graphql.DateTime
@@ -28,8 +33,6 @@ func (my *Engine) asBuiltinScalar(field *reflect.StructField) (graphql.Type, err
 			scalar = Void
 		case "boot.Cursor":
 			scalar = Cursor
-		default:
-			scalar = graphql.String
 		}
 	}
 

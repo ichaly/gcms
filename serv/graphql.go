@@ -28,7 +28,13 @@ type gqlRequest struct {
 
 func NewGraphql(r *Render, g base.EntityGroup, e *boot.Engine) (*Graphql, error) {
 	for _, v := range g.Entities {
-		_, err := e.Register(v)
+		obj, err := e.AddType(v)
+		if err != nil {
+			return nil, err
+		}
+		err = e.AddTo(func(p graphql.ResolveParams) (interface{}, error) {
+			return nil, nil
+		}, "Query", obj.Name(), "")
 		if err != nil {
 			return nil, err
 		}
