@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/ichaly/gcms/core"
+	"github.com/ichaly/gcms/boot"
 	"github.com/ichaly/gcms/data"
 	"github.com/ichaly/gcms/form"
 	"github.com/ichaly/gcms/serv"
@@ -22,7 +22,7 @@ var runCmd = &cobra.Command{
 		}
 		fx.New(
 			data.Modules,
-			core.Modules,
+			boot.Modules,
 			serv.Modules,
 			form.Modules,
 			fx.Supply(configFile),

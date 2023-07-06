@@ -5,7 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/base"
-	"github.com/ichaly/gcms/core"
+	"github.com/ichaly/gcms/boot"
 	"github.com/pkg/errors"
 	"net/http"
 	"strings"
@@ -26,9 +26,9 @@ type gqlRequest struct {
 	Variables     map[string]interface{} `json:"variables"`
 }
 
-func NewGraphql(r *Render, g base.EntityGroup, e *core.Engine) (*Graphql, error) {
+func NewGraphql(r *Render, g base.EntityGroup, e *boot.Engine) (*Graphql, error) {
 	for _, v := range g.Entities {
-		err := e.AddQuery(v)
+		_, err := e.Register(v)
 		if err != nil {
 			return nil, err
 		}
