@@ -57,7 +57,8 @@ func wrapType(p reflect.Type, t graphql.Type) graphql.Type {
 	case reflect.Ptr:
 		return wrapType(p.Elem(), t)
 	default:
-		return newNonNull(t)
+		//return newNonNull(t)
+		return t
 	}
 }
 
