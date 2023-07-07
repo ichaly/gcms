@@ -6,6 +6,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/base"
 	"github.com/ichaly/gcms/boot"
+	"github.com/ichaly/gcms/data"
 	"github.com/pkg/errors"
 	"net/http"
 	"strings"
@@ -26,18 +27,14 @@ type gqlRequest struct {
 	Variables     map[string]interface{} `json:"variables"`
 }
 
-func NewGraphql(r *Render, g base.EntityGroup, e *boot.Engine) (*Graphql, error) {
-	for _, v := range g.Entities {
-		obj, err := e.AddType(v)
-		if err != nil {
-			return nil, err
-		}
-		err = e.AddTo(func(p graphql.ResolveParams) (interface{}, error) {
-			return nil, nil
-		}, "Query", obj.Name(), "")
-		if err != nil {
-			return nil, err
-		}
+func NewGraphql(r *Render, e *boot.Engine) (*Graphql, error) {
+	err := e.AddTo(func(p graphql.ResolveParams) ([]*data.User, error) {
+		var users []*data.User
+		users = append(users, &data.User{Name: "ichaly"})
+		return users, nil
+	}, "Query", "user", "")
+	if err != nil {
+		return nil, err
 	}
 	s, err := e.Schema()
 	if err != nil {

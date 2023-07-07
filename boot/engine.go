@@ -7,13 +7,11 @@ import (
 )
 
 type Engine struct {
-	names map[string]reflect.Type
 	types map[string]graphql.Type
 }
 
 func NewEngine() *Engine {
 	return &Engine{
-		names: map[string]reflect.Type{},
 		types: map[string]graphql.Type{
 			Query: q, Mutation: m, Subscription: s,
 		},
@@ -21,8 +19,7 @@ func NewEngine() *Engine {
 }
 
 func (my *Engine) AddTo(
-	resolver func(graphql.ResolveParams) (interface{}, error),
-	objectName, fieldName, description string, tags ...string,
+	resolver interface{}, objectName, fieldName, description string,
 ) error {
 	if resolver == nil {
 		return fmt.Errorf("missing resolve funtion")
@@ -41,12 +38,41 @@ func (my *Engine) AddTo(
 	if !ok {
 		return fmt.Errorf("invalid object %s", objectName)
 	}
-	objectType := my.types[fieldName]
+	typ := reflect.TypeOf(resolver)
+	if typ.Kind() != reflect.Func {
+		return fmt.Errorf("resolve prototype should be a function")
+	}
+	if typ.NumOut() != 2 {
+		return fmt.Errorf("resolve prototype should return 2 values")
+	}
+	out := typ.Out(0)
+	src, err := my.buildObject(out)
+	if err != nil {
+		return err
+	}
+	queryArgs := graphql.FieldConfigArgument{
+		"id":         {Type: graphql.ID},
+		"size":       {Type: graphql.Int},
+		"page":       {Type: graphql.Int},
+		"top":        {Type: graphql.Int},
+		"last":       {Type: graphql.Int},
+		"after":      {Type: Cursor},
+		"before":     {Type: Cursor},
+		"search":     {Type: graphql.String},
+		"distinctOn": {Type: graphql.NewList(graphql.String)},
+		"sort":       {Type: my.types[src.Name()+"SortInput"]},
+		"where":      {Type: my.types[src.Name()+"WhereInput"]},
+	}
 	obj.AddFieldConfig(fieldName, &graphql.Field{
-		Name: fieldName, Type: objectType, Description: description,
+		Name: fieldName, Type: wrapType(out, src), Args: queryArgs, Description: description,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			return func() (interface{}, error) {
-				return resolver(p)
+				f := reflect.ValueOf(resolver)
+				v := []reflect.Value{reflect.ValueOf(p)}
+				r := f.Call(v)
+				res := r[0].Interface()
+				err, _ := r[1].Interface().(error)
+				return res, err
 			}, nil
 		},
 	})
@@ -55,11 +81,7 @@ func (my *Engine) AddTo(
 
 func (my *Engine) AddType(prototype interface{}) (*graphql.Object, error) {
 	typ := reflect.TypeOf(prototype)
-	obj, err := my.buildObject(typ)
-	if err == nil {
-		my.names[obj.Name()] = typ
-	}
-	return obj, err
+	return my.buildObject(typ)
 }
 
 func (my *Engine) Schema() (graphql.Schema, error) {

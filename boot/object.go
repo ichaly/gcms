@@ -3,6 +3,7 @@ package boot
 import (
 	"fmt"
 	"github.com/graphql-go/graphql"
+	"github.com/iancoleman/strcase"
 	"reflect"
 )
 
@@ -43,6 +44,9 @@ func (my *Engine) buildObject(base reflect.Type) (*graphql.Object, error) {
 		return nil, err
 	}
 	my.types[name] = o
+
+	my.buildSortInput(o)
+	my.buildWhereInput(o)
 	return o, nil
 }
 
@@ -78,7 +82,8 @@ func (my *Engine) parseFields(typ reflect.Type, obj *graphql.Object, dep int) er
 		if fieldType == nil {
 			panic(fmt.Errorf("unsupported field type: %s", f.Type.String()))
 		}
-		obj.AddFieldConfig(f.Name, &graphql.Field{
+		fieldName := strcase.ToLowerCamel(f.Name)
+		obj.AddFieldConfig(fieldName, &graphql.Field{
 			Type: fieldType,
 			//Description: description(&f),
 		})
