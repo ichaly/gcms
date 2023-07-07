@@ -14,7 +14,7 @@ type UserApi struct {
 
 func NewUserApi(d *gorm.DB, e *boot.Engine) core.Schema {
 	my := &UserApi{d}
-	_ = e.AddTo(my.GetUsers, boot.Query, "", "")
+	e.NewQuery(my.GetUsers).Name("users").Description("用户管理")
 	return my
 }
 

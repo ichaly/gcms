@@ -17,8 +17,8 @@ type ContentApi struct {
 func NewContentApi(d *gorm.DB, e *boot.Engine) core.Schema {
 	my := &ContentApi{db: d}
 	my.loader = boot.NewBatchedLoader(my.batchFunc)
-	_ = e.AddTo(my.GetContests, boot.Query, "contents", "")
-	_ = e.AddTo(my.GetContestsForUser, "User", "contents", "")
+	e.NewQuery(my.GetContests).Name("contents").Description("内容管理")
+	e.NewBuilder(my.GetContestsForUser).To("User").Name("contents").Description("用户内容")
 	return my
 }
 

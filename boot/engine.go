@@ -7,7 +7,8 @@ import (
 )
 
 type Engine struct {
-	types map[string]graphql.Type
+	types         map[string]graphql.Type
+	chainBuilders []chainBuilder
 }
 
 func NewEngine() *Engine {
@@ -19,6 +20,11 @@ func NewEngine() *Engine {
 }
 
 func (my *Engine) Schema() (graphql.Schema, error) {
+	for _, b := range my.chainBuilders {
+		if err := b.build(my); err != nil {
+			panic(err)
+		}
+	}
 	config := graphql.SchemaConfig{}
 	if len(q.Fields()) > 0 {
 		config.Query = q
