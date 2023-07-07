@@ -7,8 +7,12 @@ import (
 var Modules = fx.Options(
 	fx.Provide(
 		fx.Annotated{
-			Name:   "schema",
-			Target: NewSchema,
+			Group:  "api",
+			Target: NewUserApi,
+		},
+		fx.Annotated{
+			Group:  "api",
+			Target: NewContentApi,
 		},
 	),
 )

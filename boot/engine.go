@@ -18,6 +18,20 @@ func NewEngine() *Engine {
 	}
 }
 
+func (my *Engine) Schema() (graphql.Schema, error) {
+	config := graphql.SchemaConfig{}
+	if len(q.Fields()) > 0 {
+		config.Query = q
+	}
+	if len(m.Fields()) > 0 {
+		config.Mutation = m
+	}
+	if len(s.Fields()) > 0 {
+		config.Subscription = s
+	}
+	return graphql.NewSchema(config)
+}
+
 func (my *Engine) AddTo(
 	resolver interface{}, objectName, fieldName, description string,
 ) error {
@@ -77,23 +91,4 @@ func (my *Engine) AddTo(
 		},
 	})
 	return nil
-}
-
-func (my *Engine) AddType(prototype interface{}) (*graphql.Object, error) {
-	typ := reflect.TypeOf(prototype)
-	return my.buildObject(typ)
-}
-
-func (my *Engine) Schema() (graphql.Schema, error) {
-	config := graphql.SchemaConfig{}
-	if len(q.Fields()) > 0 {
-		config.Query = q
-	}
-	if len(m.Fields()) > 0 {
-		config.Mutation = m
-	}
-	if len(s.Fields()) > 0 {
-		config.Subscription = s
-	}
-	return graphql.NewSchema(config)
 }

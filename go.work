@@ -2,13 +2,11 @@ go 1.20
 
 use (
 	./apis
-	./boot
-	./zlog
-	./util
 	./base
-	./data
-	./form
+	./boot
 	./core
-	./serv
+	./util
+	./zlog
+	./data
 	./main
 )

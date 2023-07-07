@@ -1,4 +1,4 @@
-package serv
+package core
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/base"
 	"github.com/ichaly/gcms/boot"
-	"github.com/ichaly/gcms/data"
 	"github.com/pkg/errors"
 	"net/http"
 	"strings"
@@ -27,15 +26,7 @@ type gqlRequest struct {
 	Variables     map[string]interface{} `json:"variables"`
 }
 
-func NewGraphql(r *Render, e *boot.Engine) (*Graphql, error) {
-	err := e.AddTo(func(p graphql.ResolveParams) ([]*data.User, error) {
-		var users []*data.User
-		users = append(users, &data.User{Name: "ichaly"})
-		return users, nil
-	}, "Query", "user", "")
-	if err != nil {
-		return nil, err
-	}
+func NewGraphql(r *Render, e *boot.Engine, _ SchemaGroup) (*Graphql, error) {
 	s, err := e.Schema()
 	if err != nil {
 		return nil, err

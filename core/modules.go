@@ -6,6 +6,17 @@ import (
 
 var Modules = fx.Options(
 	fx.Provide(
-		NewEngine,
+		NewConfig,
+		NewStore,
+		NewCache,
+		NewRender,
+		NewRouter,
+		NewConnect,
+		fx.Annotate(
+			NewGraphql,
+			fx.As(new(Plugin)),
+			fx.ResultTags(`group:"plugin"`),
+		),
 	),
+	fx.Invoke(Bootstrap),
 )

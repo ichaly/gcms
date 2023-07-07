@@ -3,6 +3,7 @@ package boot
 import (
 	"fmt"
 	"github.com/graphql-go/graphql"
+	"github.com/iancoleman/strcase"
 	"reflect"
 	"runtime"
 	"strings"
@@ -76,8 +77,8 @@ func newPrototype(p reflect.Type) interface{} {
 
 func getFuncName(fn interface{}) string {
 	name := runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
-	if dot := strings.LastIndex(name, "."); dot >= 0 {
-		return name[dot+1:]
-	}
+	name = name[strings.LastIndex(name, ".")+1:]
+	name = strings.ReplaceAll(name, "-fm", "")
+	name = strcase.ToLowerCamel(name)
 	return name
 }
