@@ -5,6 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/iancoleman/strcase"
 	"reflect"
+	"strings"
 )
 
 var _objectType = reflect.TypeOf((*GqlObject)(nil)).Elem()
@@ -83,9 +84,20 @@ func (my *Engine) parseFields(typ reflect.Type, obj *graphql.Object, dep int) er
 		}
 		fieldName := strcase.ToLowerCamel(f.Name)
 		obj.AddFieldConfig(fieldName, &graphql.Field{
-			Type: wrapType(f.Type, fieldType),
-			//Description: description(&f),
+			Type:        wrapType(f.Type, fieldType),
+			Description: description(&f),
 		})
 	}
 	return nil
+}
+
+func description(field *reflect.StructField) string {
+	tag := field.Tag.Get("gorm")
+	tags := strings.Split(tag, ";")
+	for _, t := range tags {
+		if strings.HasPrefix(t, "comment:") {
+			return t[8:]
+		}
+	}
+	return ""
 }
