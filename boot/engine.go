@@ -87,6 +87,9 @@ func (my *Engine) AddTo(
 			"sort":       {Type: my.types[src.Name()+"SortInput"]},
 			"where":      {Type: my.types[src.Name()+"WhereInput"]},
 		}
+		if description == "" {
+			description = src.Description()
+		}
 	}
 	obj.AddFieldConfig(fieldName, &graphql.Field{
 		Name: fieldName, Type: wrapType(out, src), Args: queryArgs, Description: description,

@@ -20,7 +20,7 @@ type UserApi struct {
 func NewUserApi(d *gorm.DB, e *boot.Engine) core.Schema {
 	my := &UserApi{db: d}
 	my.loader = boot.NewBatchedLoader(my.batchFunc)
-	e.NewQuery(my.GetUsers).Name("users").Description("用户管理")
+	e.NewQuery(my.GetUsers).Name("users")
 	e.NewBuilder(my.GetUserAge).To(User).Name("age").Description("年龄")
 	e.NewBuilder(my.GetUserContests).To(User).Name("contents").Description("用户内容")
 	return my
