@@ -12,23 +12,23 @@ type GqlID interface {
 	ID()
 }
 
-func (my *Engine) asId(field *reflect.StructField) (graphql.Type, error) {
-	isId := field.Type.Implements(_idType)
+func (my *Engine) asId(typ reflect.Type) (graphql.Type, error) {
+	isId := typ.Implements(_idType)
 	if !isId {
 		return nil, nil
 	}
 
-	typ, err := unwrap(field.Type)
+	base, err := unwrap(typ)
 	if err != nil {
 		return nil, err
 	}
 
-	switch typ.Kind() {
+	switch base.Kind() {
 	case reflect.Uint64, reflect.Uint, reflect.Uint32,
 		reflect.Int64, reflect.Int, reflect.Int32,
 		reflect.String:
 	default:
-		panic(fmt.Errorf("%s cannot be used as an ID", typ.String()))
+		panic(fmt.Errorf("%s cannot be used as an ID", base.String()))
 	}
-	return wrapType(field.Type, graphql.ID), nil
+	return graphql.ID, nil
 }

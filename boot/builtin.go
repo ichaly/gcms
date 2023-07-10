@@ -5,16 +5,16 @@ import (
 	"reflect"
 )
 
-func (my *Engine) asBuiltinScalar(field *reflect.StructField) (graphql.Type, error) {
-	typ, err := unwrap(field.Type)
+func (my *Engine) asBuiltinScalar(typ reflect.Type) (graphql.Type, error) {
+	base, err := unwrap(typ)
 	if err != nil {
 		return nil, err
 	}
 
 	var scalar graphql.Type
 
-	if typ.PkgPath() == "" {
-		switch typ.Kind() {
+	if base.PkgPath() == "" {
+		switch base.Kind() {
 		case reflect.Int, reflect.Int64, reflect.Int32, reflect.Uint, reflect.Uint64, reflect.Uint32,
 			reflect.Int8, reflect.Int16, reflect.Uint8, reflect.Uint16:
 			scalar = graphql.Int
@@ -26,7 +26,7 @@ func (my *Engine) asBuiltinScalar(field *reflect.StructField) (graphql.Type, err
 			scalar = graphql.String
 		}
 	} else {
-		switch typ.String() {
+		switch base.String() {
 		case "time.Time", "gorm.DeletedAt":
 			scalar = graphql.DateTime
 		case "boot.Void":
@@ -40,5 +40,5 @@ func (my *Engine) asBuiltinScalar(field *reflect.StructField) (graphql.Type, err
 		return nil, nil
 	}
 
-	return wrapType(field.Type, scalar), nil
+	return scalar, nil
 }

@@ -13,12 +13,12 @@ type GqlObject interface {
 	Description() string
 }
 
-func (my *Engine) asObject(field *reflect.StructField) (graphql.Type, error) {
-	typ, err := my.buildObject(field.Type)
+func (my *Engine) asObject(typ reflect.Type) (graphql.Type, error) {
+	object, err := my.buildObject(typ)
 	if err != nil {
 		return nil, err
 	}
-	return wrapType(field.Type, typ), nil
+	return object, nil
 }
 
 func (my *Engine) buildObject(base reflect.Type) (*graphql.Object, error) {
@@ -68,8 +68,7 @@ func (my *Engine) parseFields(typ reflect.Type, obj *graphql.Object, dep int) er
 			continue
 		}
 
-		fieldType, err := parseType(
-			&f, "obj field",
+		fieldType, err := parseType(f.Type, "obj field",
 			my.asBuiltinScalar,
 			my.asCustomScalar,
 			my.asId,
@@ -84,23 +83,9 @@ func (my *Engine) parseFields(typ reflect.Type, obj *graphql.Object, dep int) er
 		}
 		fieldName := strcase.ToLowerCamel(f.Name)
 		obj.AddFieldConfig(fieldName, &graphql.Field{
-			Type: fieldType,
+			Type: wrapType(f.Type, fieldType),
 			//Description: description(&f),
 		})
 	}
 	return nil
-}
-
-func parseType(field *reflect.StructField, errString string, parsers ...typeParser) (graphql.Type, error) {
-	for _, check := range parsers {
-		typ, err := check(field)
-		if err != nil {
-			return nil, err
-		}
-		if typ == nil {
-			continue
-		}
-		return typ, nil
-	}
-	return nil, fmt.Errorf("unsupported type('%s') for %s '%s'", field.Type.String(), errString, field.Name)
 }

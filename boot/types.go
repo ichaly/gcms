@@ -7,7 +7,7 @@ import (
 	"reflect"
 )
 
-type typeParser func(field *reflect.StructField) (graphql.Type, error)
+type typeParser func(typ reflect.Type) (graphql.Type, error)
 
 type __input struct {
 	Name        string

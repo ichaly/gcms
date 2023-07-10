@@ -66,22 +66,27 @@ func (my *Engine) AddTo(
 		return fmt.Errorf("resolve prototype should return 2 values")
 	}
 	out := typ.Out(0)
-	src, err := my.buildObject(out)
+	src, err := parseType(out, "result",
+		my.asBuiltinScalar, my.asCustomScalar, my.asId, my.asEnum, my.asObject,
+	)
 	if err != nil {
 		return err
 	}
-	queryArgs := graphql.FieldConfigArgument{
-		"id":         {Type: graphql.ID},
-		"size":       {Type: graphql.Int},
-		"page":       {Type: graphql.Int},
-		"top":        {Type: graphql.Int},
-		"last":       {Type: graphql.Int},
-		"after":      {Type: Cursor},
-		"before":     {Type: Cursor},
-		"search":     {Type: graphql.String},
-		"distinctOn": {Type: graphql.NewList(graphql.String)},
-		"sort":       {Type: my.types[src.Name()+"SortInput"]},
-		"where":      {Type: my.types[src.Name()+"WhereInput"]},
+	var queryArgs graphql.FieldConfigArgument
+	if _, ok := src.(*graphql.Object); ok {
+		queryArgs = graphql.FieldConfigArgument{
+			"id":         {Type: graphql.ID},
+			"size":       {Type: graphql.Int},
+			"page":       {Type: graphql.Int},
+			"top":        {Type: graphql.Int},
+			"last":       {Type: graphql.Int},
+			"after":      {Type: Cursor},
+			"before":     {Type: Cursor},
+			"search":     {Type: graphql.String},
+			"distinctOn": {Type: graphql.NewList(graphql.String)},
+			"sort":       {Type: my.types[src.Name()+"SortInput"]},
+			"where":      {Type: my.types[src.Name()+"WhereInput"]},
+		}
 	}
 	obj.AddFieldConfig(fieldName, &graphql.Field{
 		Name: fieldName, Type: wrapType(out, src), Args: queryArgs, Description: description,

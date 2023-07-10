@@ -62,6 +62,20 @@ func wrapType(p reflect.Type, t graphql.Type) graphql.Type {
 	}
 }
 
+func parseType(typ reflect.Type, errString string, parsers ...typeParser) (graphql.Type, error) {
+	for _, check := range parsers {
+		res, err := check(typ)
+		if err != nil {
+			return nil, err
+		}
+		if res == nil {
+			continue
+		}
+		return res, nil
+	}
+	return nil, fmt.Errorf("unsupported type('%s') for %s", typ.String(), errString)
+}
+
 func newPrototype(p reflect.Type) interface{} {
 	elem := false
 	if p.Kind() == reflect.Ptr {

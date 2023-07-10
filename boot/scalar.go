@@ -14,18 +14,18 @@ type GqlScalar interface {
 	Unmarshal(value interface{})
 }
 
-func (my *Engine) asCustomScalar(field *reflect.StructField) (graphql.Type, error) {
-	isScalar := field.Type.Implements(_scalarType)
+func (my *Engine) asCustomScalar(typ reflect.Type) (graphql.Type, error) {
+	isScalar := typ.Implements(_scalarType)
 	if !isScalar {
 		return nil, nil
 	}
 
-	typ, err := my.buildCustomScalar(field.Type)
+	scalar, err := my.buildCustomScalar(typ)
 	if err != nil {
 		return nil, err
 	}
 
-	return wrapType(field.Type, typ), nil
+	return scalar, nil
 }
 
 func (my *Engine) buildCustomScalar(base reflect.Type) (*graphql.Scalar, error) {

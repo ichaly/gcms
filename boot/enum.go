@@ -16,18 +16,18 @@ type GqlEnum interface {
 	}
 }
 
-func (my *Engine) asEnum(field *reflect.StructField) (graphql.Type, error) {
-	isEnum := field.Type.Implements(_enumType)
+func (my *Engine) asEnum(typ reflect.Type) (graphql.Type, error) {
+	isEnum := typ.Implements(_enumType)
 	if !isEnum {
 		return nil, nil
 	}
 
-	typ, err := my.buildEnum(field.Type)
+	enum, err := my.buildEnum(typ)
 	if err != nil {
 		return nil, err
 	}
 
-	return wrapType(field.Type, typ), nil
+	return enum, nil
 }
 
 func (my *Engine) buildEnum(base reflect.Type) (*graphql.Enum, error) {
