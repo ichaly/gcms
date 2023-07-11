@@ -94,6 +94,8 @@ func getFuncName(fn interface{}) string {
 	name := runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
 	name = name[strings.LastIndex(name, ".")+1:]
 	name = strings.ReplaceAll(name, "-fm", "")
+	name = strings.Replace(name, "Get", "", 1)
+	name = strings.Replace(name, "Resolve", "", 1)
 	name = strcase.ToLowerCamel(name)
 	return name
 }

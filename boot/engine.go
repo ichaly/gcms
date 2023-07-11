@@ -38,9 +38,7 @@ func (my *Engine) Schema() (graphql.Schema, error) {
 	return graphql.NewSchema(config)
 }
 
-func (my *Engine) AddTo(
-	resolver interface{}, objectName, fieldName, description string,
-) error {
+func (my *Engine) AddTo(resolver interface{}, objectName, fieldName, description string) error {
 	if resolver == nil {
 		return fmt.Errorf("missing resolve funtion")
 	}

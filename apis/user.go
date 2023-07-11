@@ -20,9 +20,9 @@ type UserApi struct {
 func NewUserApi(d *gorm.DB, e *boot.Engine) core.Schema {
 	my := &UserApi{db: d}
 	my.loader = boot.NewBatchedLoader(my.batchFunc)
-	e.NewQuery(my.GetUsers).Name("users")
-	e.NewBuilder(my.GetUserAge).To(User).Name("age").Description("年龄")
-	e.NewBuilder(my.GetUserContests).To(User).Name("contents").Description("用户内容")
+	e.NewQuery(my.GetUsers)
+	e.NewBuilder(my.GetAge).To(User).Description("年龄")
+	e.NewBuilder(my.GetContents).To(User).Description("用户内容")
 	return my
 }
 
@@ -32,7 +32,7 @@ func (my *UserApi) GetUsers(p graphql.ResolveParams) ([]*data.User, error) {
 	return res, err
 }
 
-func (my *UserApi) GetUserAge(p graphql.ResolveParams) (int, error) {
+func (my *UserApi) GetAge(p graphql.ResolveParams) (int, error) {
 	user := p.Source.(*data.User)
 	if user.Birthday.IsZero() {
 		return 0, nil
@@ -40,7 +40,7 @@ func (my *UserApi) GetUserAge(p graphql.ResolveParams) (int, error) {
 	return time.Now().Year() - user.Birthday.Year(), nil
 }
 
-func (my *UserApi) GetUserContests(p graphql.ResolveParams) (*data.Content, error) {
+func (my *UserApi) GetContents(p graphql.ResolveParams) (*data.Content, error) {
 	uid := p.Source.(*data.User).ID
 	thunk := my.loader.Load(p.Context, uint64(uid))
 	return thunk()

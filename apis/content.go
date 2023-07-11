@@ -16,7 +16,7 @@ type ContentApi struct {
 
 func NewContentApi(d *gorm.DB, e *boot.Engine) core.Schema {
 	my := &ContentApi{db: d}
-	e.NewQuery(my.GetContests).Name("contents")
+	e.NewQuery(my.GetContests)
 	return my
 }
 
