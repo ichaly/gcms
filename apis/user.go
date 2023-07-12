@@ -14,7 +14,7 @@ const User = "User"
 
 type UserApi struct {
 	db     *gorm.DB
-	loader *boot.Loader[uint64, *data.Content]
+	loader *boot.Loader[uint64, []*data.Content]
 }
 
 func NewUserApi(d *gorm.DB, e *boot.Engine) core.Schema {
@@ -40,22 +40,21 @@ func (my *UserApi) GetAge(p graphql.ResolveParams) (int, error) {
 	return time.Now().Year() - user.Birthday.Year(), nil
 }
 
-func (my *UserApi) GetContents(p graphql.ResolveParams) func() (*data.Content, error) {
+func (my *UserApi) GetContents(p graphql.ResolveParams) func() ([]*data.Content, error) {
 	uid := uint64(p.Source.(*data.User).ID)
-	thunk := my.loader.Load(p.Context, uid)
-	return thunk
+	return my.loader.Load(p.Context, uid)
 }
 
-func (my *UserApi) batchFunc(_ context.Context, keys []uint64) []*boot.Result[*data.Content] {
-	var contents []*data.Content
-	err := my.db.Model(&data.Content{}).Where("created_by in ?", keys).Find(&contents).Error
-	values := make(map[uint64]*data.Content)
-	for _, c := range contents {
-		values[*c.CreatedBy] = c
+func (my *UserApi) batchFunc(_ context.Context, keys []uint64) []*boot.Result[[]*data.Content] {
+	var res []*data.Content
+	err := my.db.Model(&data.Content{}).Where("created_by in ?", keys).Find(&res).Error
+	values := make(map[uint64][]*data.Content)
+	for _, c := range res {
+		values[*c.CreatedBy] = append(values[*c.CreatedBy], c)
 	}
-	results := make([]*boot.Result[*data.Content], len(keys))
+	results := make([]*boot.Result[[]*data.Content], len(keys))
 	for i, k := range keys {
-		r := &boot.Result[*data.Content]{
+		r := &boot.Result[[]*data.Content]{
 			Error: err,
 		}
 		if v, ok := values[k]; ok {
