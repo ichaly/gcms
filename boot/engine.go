@@ -60,10 +60,13 @@ func (my *Engine) AddTo(resolver interface{}, objectName, fieldName, description
 	if typ.Kind() != reflect.Func {
 		return fmt.Errorf("resolve prototype should be a function")
 	}
-	if typ.NumOut() != 2 {
-		return fmt.Errorf("resolve prototype should return 2 values")
+	if typ.NumOut() == 0 {
+		return fmt.Errorf("resolve prototype should return 1 or 2 values")
 	}
 	out := typ.Out(0)
+	if out.Kind() == reflect.Func {
+		out = out.Out(0)
+	}
 	src, err := parseType(out, "result",
 		my.asBuiltinScalar, my.asCustomScalar, my.asId, my.asEnum, my.asObject,
 	)
@@ -92,14 +95,18 @@ func (my *Engine) AddTo(resolver interface{}, objectName, fieldName, description
 	obj.AddFieldConfig(fieldName, &graphql.Field{
 		Name: fieldName, Type: wrapType(out, src), Args: queryArgs, Description: description,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			return func() (interface{}, error) {
-				f := reflect.ValueOf(resolver)
-				v := []reflect.Value{reflect.ValueOf(p)}
-				r := f.Call(v)
+			f := reflect.ValueOf(resolver)
+			v := []reflect.Value{reflect.ValueOf(p)}
+			r := f.Call(v)
+			if r[0].Type().Kind() == reflect.Func {
+				return func() (interface{}, error) {
+					return r[0].Call(nil)[0].Interface(), nil
+				}, nil
+			} else {
 				res := r[0].Interface()
 				err, _ := r[1].Interface().(error)
 				return res, err
-			}, nil
+			}
 		},
 	})
 	return nil

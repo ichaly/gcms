@@ -40,10 +40,10 @@ func (my *UserApi) GetAge(p graphql.ResolveParams) (int, error) {
 	return time.Now().Year() - user.Birthday.Year(), nil
 }
 
-func (my *UserApi) GetContents(p graphql.ResolveParams) (*data.Content, error) {
-	uid := p.Source.(*data.User).ID
-	thunk := my.loader.Load(p.Context, uint64(uid))
-	return thunk()
+func (my *UserApi) GetContents(p graphql.ResolveParams) func() (*data.Content, error) {
+	uid := uint64(p.Source.(*data.User).ID)
+	thunk := my.loader.Load(p.Context, uid)
+	return thunk
 }
 
 func (my *UserApi) batchFunc(_ context.Context, keys []uint64) []*boot.Result[*data.Content] {
