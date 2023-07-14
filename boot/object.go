@@ -86,6 +86,9 @@ func (my *Engine) parseFields(typ reflect.Type, obj *graphql.Object, dep int) er
 		obj.AddFieldConfig(fieldName, &graphql.Field{
 			Type:        wrapType(f.Type, fieldType),
 			Description: description(&f),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				return DefaultResolver(p.Source, p.Info.FieldName)
+			},
 		})
 	}
 	return nil
