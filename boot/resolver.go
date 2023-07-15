@@ -1,12 +1,15 @@
 package boot
 
 import (
+	"github.com/graphql-go/graphql"
 	"reflect"
 	"strings"
 )
 
-// DefaultResolver uses reflection to attempt to resolve the result of a given field.
-func DefaultResolver(source interface{}, fieldName string) (interface{}, error) {
+// defaultResolver uses reflection to attempt to resolve the result of a given field.
+func defaultResolver(p graphql.ResolveParams) (interface{}, error) {
+	source := p.Source
+	fieldName := p.Info.FieldName
 	sourceVal := reflect.ValueOf(source)
 	if sourceVal.IsValid() && sourceVal.Type().Kind() == reflect.Ptr {
 		sourceVal = sourceVal.Elem()

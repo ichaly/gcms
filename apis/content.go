@@ -21,5 +21,7 @@ func NewContentApi(d *gorm.DB, e *boot.Engine) core.Schema {
 }
 
 func (my *ContentApi) GetContests(p graphql.ResolveParams) ([]*data.Content, error) {
-	return nil, nil
+	var res []*data.Content
+	err := my.db.Model(&data.Content{}).Find(&res).Error
+	return res, err
 }

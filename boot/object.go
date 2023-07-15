@@ -33,7 +33,7 @@ func (my *Engine) buildObject(base reflect.Type) (*graphql.Object, error) {
 		return obj.(*graphql.Object), nil
 	}
 
-	desc, name := "", typ.Name()
+	name, desc := typ.Name(), ""
 	if ptr, ok := newPrototype(typ).(GqlObject); ok {
 		desc = ptr.Description()
 	}
@@ -85,10 +85,8 @@ func (my *Engine) parseFields(typ reflect.Type, obj *graphql.Object, dep int) er
 		fieldName := strcase.ToLowerCamel(f.Name)
 		obj.AddFieldConfig(fieldName, &graphql.Field{
 			Type:        wrapType(f.Type, fieldType),
+			Resolve:     defaultResolver,
 			Description: description(&f),
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return DefaultResolver(p.Source, p.Info.FieldName)
-			},
 		})
 	}
 	return nil

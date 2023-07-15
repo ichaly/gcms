@@ -30,7 +30,7 @@ func (my *_builder) build(e *Engine) error {
 
 func (my *Engine) NewBuilder(resolver interface{}) Builder {
 	b := &_builder{resolver: resolver, name: getFuncName(resolver)}
-	my.chainBuilders = append(my.chainBuilders, b)
+	my.builders = append(my.builders, b)
 	return b
 }
 

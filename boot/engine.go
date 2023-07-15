@@ -7,8 +7,8 @@ import (
 )
 
 type Engine struct {
-	types         map[string]graphql.Type
-	chainBuilders []chainBuilder
+	types    map[string]graphql.Type
+	builders []chainBuilder
 }
 
 func NewEngine() *Engine {
@@ -20,7 +20,7 @@ func NewEngine() *Engine {
 }
 
 func (my *Engine) Schema() (graphql.Schema, error) {
-	for _, b := range my.chainBuilders {
+	for _, b := range my.builders {
 		if err := b.build(my); err != nil {
 			panic(err)
 		}
@@ -76,17 +76,10 @@ func (my *Engine) AddTo(resolver interface{}, objectName, fieldName, description
 	var queryArgs graphql.FieldConfigArgument
 	if _, ok := src.(*graphql.Object); ok {
 		queryArgs = graphql.FieldConfigArgument{
-			"id":         {Type: graphql.ID},
-			"size":       {Type: graphql.Int},
-			"page":       {Type: graphql.Int},
-			"top":        {Type: graphql.Int},
-			"last":       {Type: graphql.Int},
-			"after":      {Type: Cursor},
-			"before":     {Type: Cursor},
-			"search":     {Type: graphql.String},
-			"distinctOn": {Type: graphql.NewList(graphql.String)},
-			"sort":       {Type: my.types[src.Name()+"SortInput"]},
-			"where":      {Type: my.types[src.Name()+"WhereInput"]},
+			"size":  {Type: graphql.Int},
+			"page":  {Type: graphql.Int},
+			"sort":  {Type: my.types[src.Name()+"SortInput"]},
+			"where": {Type: my.types[src.Name()+"WhereInput"]},
 		}
 		if description == "" {
 			description = src.Description()
