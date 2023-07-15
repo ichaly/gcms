@@ -34,8 +34,8 @@ func (my *Engine) buildObject(base reflect.Type) (*graphql.Object, error) {
 	}
 
 	name, desc := typ.Name(), ""
-	if ptr, ok := newPrototype(typ).(GqlObject); ok {
-		desc = ptr.Description()
+	if isObject := typ.Implements(_objectType); isObject {
+		desc = newPrototype(typ).(GqlObject).Description()
 	}
 	o := graphql.NewObject(graphql.ObjectConfig{
 		Name: name, Description: desc, Fields: graphql.Fields{},
