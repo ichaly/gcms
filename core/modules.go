@@ -9,11 +9,11 @@ var Modules = fx.Options(
 	fx.Provide(
 		boot.NewEngine,
 		NewConfig,
-		NewStore,
+		NewStorage,
+		NewConnect,
 		NewCache,
 		NewRender,
 		NewRouter,
-		NewConnect,
 		fx.Annotate(
 			NewGraphql,
 			fx.As(new(Plugin)),

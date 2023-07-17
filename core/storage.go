@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func NewStore(c *Config) (*cache.Cache[string], error) {
+func NewStorage(c *Config) (*cache.Cache[string], error) {
 	var s store.StoreInterface
 	if strings.ToLower(c.Cache.Dialect) == "redis" {
 		args := []interface{}{c.Cache.Host, c.Cache.Port}
