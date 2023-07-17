@@ -1,4 +1,4 @@
-package apis
+package mesh
 
 import (
 	"go.uber.org/fx"
@@ -7,12 +7,12 @@ import (
 var Modules = fx.Options(
 	fx.Provide(
 		fx.Annotated{
-			Group:  "api",
-			Target: NewUserApi,
+			Group:  "schema",
+			Target: NewUserSchema,
 		},
 		fx.Annotated{
-			Group:  "api",
-			Target: NewContentApi,
+			Group:  "schema",
+			Target: NewContentSchema,
 		},
 	),
 )

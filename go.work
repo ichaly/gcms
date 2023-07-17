@@ -1,12 +1,12 @@
 go 1.20
 
 use (
-	./apis
 	./base
 	./boot
 	./core
+	./data
 	./util
 	./zlog
-	./data
+	./mesh
 	./main
 )

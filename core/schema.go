@@ -7,5 +7,5 @@ type Schema interface {
 
 type SchemaGroup struct {
 	fx.In
-	All []Schema `group:"api"`
+	All []Schema `group:"schema"`
 }
