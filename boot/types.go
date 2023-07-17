@@ -1,7 +1,6 @@
 package boot
 
 import (
-	"crypto/sha256"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
 	"reflect"
@@ -9,22 +8,21 @@ import (
 
 type typeParser func(typ reflect.Type) (graphql.Type, error)
 
-type __input struct {
-	Name        string
-	Type        graphql.Type
-	Description string
-}
-
-const (
-	Query        = "Query"
-	Mutation     = "Mutation"
-	Subscription = "Subscription"
+type (
+	__query        struct{}
+	__mutation     struct{}
+	__subscription struct{}
+	__input        struct {
+		Name        string
+		Type        graphql.Type
+		Description string
+	}
 )
 
 var (
-	encPrefix = "__gc:foobar:"
-	decPrefix = "__gc:enc:"
-	key       = sha256.Sum256([]byte("123"))
+	Query        = __query{}
+	Mutation     = __mutation{}
+	Subscription = __subscription{}
 )
 
 var (
@@ -54,18 +52,6 @@ var (
 		ParseLiteral: func(val ast.Value) interface{} {
 			return nil
 		},
-	})
-)
-
-var (
-	q = graphql.NewObject(graphql.ObjectConfig{
-		Name: Query, Fields: graphql.Fields{},
-	})
-	m = graphql.NewObject(graphql.ObjectConfig{
-		Name: Mutation, Fields: graphql.Fields{},
-	})
-	s = graphql.NewObject(graphql.ObjectConfig{
-		Name: Subscription, Fields: graphql.Fields{},
 	})
 )
 

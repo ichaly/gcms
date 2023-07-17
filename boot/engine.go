@@ -12,11 +12,7 @@ type Engine struct {
 }
 
 func NewEngine() *Engine {
-	return &Engine{
-		types: map[string]graphql.Type{
-			Query: q, Mutation: m, Subscription: s,
-		},
-	}
+	return &Engine{types: map[string]graphql.Type{}}
 }
 
 func (my *Engine) Schema() (graphql.Schema, error) {
@@ -26,16 +22,31 @@ func (my *Engine) Schema() (graphql.Schema, error) {
 		}
 	}
 	config := graphql.SchemaConfig{}
-	if len(q.Fields()) > 0 {
+	if q := my.checkObject("query"); q != nil {
 		config.Query = q
 	}
-	if len(m.Fields()) > 0 {
+	if m := my.checkObject("mutation"); m != nil {
 		config.Mutation = m
 	}
-	if len(s.Fields()) > 0 {
+	if s := my.checkObject("subscription"); s != nil {
 		config.Subscription = s
 	}
 	return graphql.NewSchema(config)
+}
+
+func (my *Engine) checkObject(name string) *graphql.Object {
+	tpy, ok := my.types[name]
+	if !ok {
+		return nil
+	}
+	obj, ok := tpy.(*graphql.Object)
+	if !ok {
+		return nil
+	}
+	if len(obj.Fields()) <= 0 {
+		return nil
+	}
+	return obj
 }
 
 func (my *Engine) AddTo(resolver interface{}, objectName, fieldName, description string) error {
