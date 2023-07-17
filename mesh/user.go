@@ -19,7 +19,7 @@ type UserSchema struct {
 
 func NewUserSchema(d *gorm.DB, e *boot.Engine) core.Schema {
 	my := &UserSchema{db: d}
-	my.loader = boot.NewBatchedLoader(my.batchFunc)
+	my.loader = boot.NewBatchedLoader(my.batchContents)
 	e.NewQuery(my.GetUsers)
 	e.NewBuilder(my.GetAge).To(User).Description("年龄")
 	e.NewBuilder(my.GetContents).To(User).Description("用户内容")
@@ -45,7 +45,7 @@ func (my *UserSchema) GetContents(p graphql.ResolveParams) func() ([]*data.Conte
 	return my.loader.Load(p.Context, uid)
 }
 
-func (my *UserSchema) batchFunc(_ context.Context, keys []uint64) []*boot.Result[[]*data.Content] {
+func (my *UserSchema) batchContents(_ context.Context, keys []uint64) []*boot.Result[[]*data.Content] {
 	var res []*data.Content
 	err := my.db.Model(&data.Content{}).Where("created_by in ?", keys).Find(&res).Error
 	values := make(map[uint64][]*data.Content)
