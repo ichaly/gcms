@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/ichaly/gcms/boot"
 	"github.com/ichaly/gcms/core"
 	"github.com/ichaly/gcms/data"
 	"github.com/ichaly/gcms/mesh"
@@ -21,7 +20,6 @@ var runCmd = &cobra.Command{
 			configFile = filepath.Join("../conf", "dev.yml")
 		}
 		fx.New(
-			boot.Modules,
 			core.Modules,
 			data.Modules,
 			mesh.Modules,

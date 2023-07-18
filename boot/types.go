@@ -8,21 +8,44 @@ import (
 
 type typeParser func(typ reflect.Type) (graphql.Type, error)
 
-type (
-	__query        struct{}
-	__mutation     struct{}
-	__subscription struct{}
-	__input        struct {
-		Name        string
-		Type        graphql.Type
-		Description string
-	}
+type input struct {
+	Name string
+	Desc string
+	Type graphql.Type
+}
+
+const (
+	Query        = "Query"
+	Mutation     = "Mutation"
+	Subscription = "Subscription"
 )
 
 var (
-	Query        = __query{}
-	Mutation     = __mutation{}
-	Subscription = __subscription{}
+	expNull = []input{
+		{Name: "isNull", Type: graphql.Boolean, Desc: "Is value null (true) or not null (false)"},
+	}
+	expList = []input{
+		{Name: "in", Desc: "Is in list of values"},
+		{Name: "notIn", Desc: "Is not in list of values"},
+	}
+	expBase = []input{
+		{Name: "eq", Desc: "Equals value"},
+		{Name: "ne", Desc: "Does not equal value"},
+		{Name: "gt", Desc: "Is greater than value"},
+		{Name: "lt", Desc: "Is lesser than value"},
+		{Name: "ge", Desc: "Is greater than or equals value"},
+		{Name: "le", Desc: "Is lesser than or equals value"},
+		{Name: "like", Desc: "Value matching (case-insensitive) pattern where '%' represents zero or more characters and '_' represents a single character. Eg. '_r%' finds values having 'r' in second position"},
+		{Name: "notLike", Desc: "Value not matching pattern where '%' represents zero or more characters and '_' represents a single character. Eg. '_r%' finds values not having 'r' in second position"},
+		{Name: "iLike", Desc: "Value matching (case-insensitive) pattern where '%' represents zero or more characters and '_' represents a single character. Eg. '_r%' finds values having 'r' in second position"},
+		{Name: "notILike", Desc: "Value not matching (case-insensitive) pattern where '%' represents zero or more characters and '_' represents a single character. Eg. '_r%' finds values not having 'r' in second position"},
+		{Name: "similar", Desc: "Value matching regex pattern. Similar to the 'like' operator but with support for regex. Pattern must match entire value."},
+		{Name: "notSimilar", Desc: "Value not matching regex pattern. Similar to the 'like' operator but with support for regex. Pattern must not match entire value."},
+		{Name: "regex", Desc: "Value matches regex pattern"},
+		{Name: "notRegex", Desc: "Value not matching regex pattern"},
+		{Name: "iRegex", Desc: "Value matches (case-insensitive) regex pattern"},
+		{Name: "notIRegex", Desc: "Value not matching (case-insensitive) regex pattern"},
+	}
 )
 
 var (
@@ -85,31 +108,3 @@ var SortDirection = graphql.NewEnum(graphql.EnumConfig{
 		},
 	},
 })
-
-var expNull = []__input{
-	{Name: "isNull", Type: graphql.Boolean, Description: "Is value null (true) or not null (false)"},
-}
-
-var expList = []__input{
-	{Name: "in", Description: "Is in list of values"},
-	{Name: "notIn", Description: "Is not in list of values"},
-}
-
-var expScalar = []__input{
-	{Name: "eq", Description: "Equals value"},
-	{Name: "ne", Description: "Does not equal value"},
-	{Name: "gt", Description: "Is greater than value"},
-	{Name: "lt", Description: "Is lesser than value"},
-	{Name: "ge", Description: "Is greater than or equals value"},
-	{Name: "le", Description: "Is lesser than or equals value"},
-	{Name: "like", Description: "Value matching (case-insensitive) pattern where '%' represents zero or more characters and '_' represents a single character. Eg. '_r%' finds values having 'r' in second position"},
-	{Name: "notLike", Description: "Value not matching pattern where '%' represents zero or more characters and '_' represents a single character. Eg. '_r%' finds values not having 'r' in second position"},
-	{Name: "iLike", Description: "Value matching (case-insensitive) pattern where '%' represents zero or more characters and '_' represents a single character. Eg. '_r%' finds values having 'r' in second position"},
-	{Name: "notILike", Description: "Value not matching (case-insensitive) pattern where '%' represents zero or more characters and '_' represents a single character. Eg. '_r%' finds values not having 'r' in second position"},
-	{Name: "similar", Description: "Value matching regex pattern. Similar to the 'like' operator but with support for regex. Pattern must match entire value."},
-	{Name: "notSimilar", Description: "Value not matching regex pattern. Similar to the 'like' operator but with support for regex. Pattern must not match entire value."},
-	{Name: "regex", Description: "Value matches regex pattern"},
-	{Name: "notRegex", Description: "Value not matching regex pattern"},
-	{Name: "iRegex", Description: "Value matches (case-insensitive) regex pattern"},
-	{Name: "notIRegex", Description: "Value not matching (case-insensitive) regex pattern"},
-}

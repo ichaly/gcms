@@ -12,7 +12,17 @@ type Engine struct {
 }
 
 func NewEngine() *Engine {
-	return &Engine{types: map[string]graphql.Type{}}
+	return &Engine{types: map[string]graphql.Type{
+		Query: graphql.NewObject(graphql.ObjectConfig{
+			Name: Query, Fields: graphql.Fields{},
+		}),
+		Mutation: graphql.NewObject(graphql.ObjectConfig{
+			Name: Mutation, Fields: graphql.Fields{},
+		}),
+		Subscription: graphql.NewObject(graphql.ObjectConfig{
+			Name: Subscription, Fields: graphql.Fields{},
+		}),
+	}}
 }
 
 func (my *Engine) Schema() (graphql.Schema, error) {
@@ -22,31 +32,16 @@ func (my *Engine) Schema() (graphql.Schema, error) {
 		}
 	}
 	config := graphql.SchemaConfig{}
-	if q := my.checkObject("query"); q != nil {
+	if q := my.types[Query].(*graphql.Object); len(q.Fields()) > 0 {
 		config.Query = q
 	}
-	if m := my.checkObject("mutation"); m != nil {
+	if m := my.types[Mutation].(*graphql.Object); len(m.Fields()) > 0 {
 		config.Mutation = m
 	}
-	if s := my.checkObject("subscription"); s != nil {
+	if s := my.types[Subscription].(*graphql.Object); len(s.Fields()) > 0 {
 		config.Subscription = s
 	}
 	return graphql.NewSchema(config)
-}
-
-func (my *Engine) checkObject(name string) *graphql.Object {
-	tpy, ok := my.types[name]
-	if !ok {
-		return nil
-	}
-	obj, ok := tpy.(*graphql.Object)
-	if !ok {
-		return nil
-	}
-	if len(obj.Fields()) <= 0 {
-		return nil
-	}
-	return obj
 }
 
 func (my *Engine) AddTo(resolver interface{}, objectName, fieldName, description string) error {

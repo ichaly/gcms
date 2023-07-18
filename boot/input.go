@@ -6,7 +6,7 @@ import (
 
 func (my *Engine) buildExpressionInput(t graphql.Type) graphql.Type {
 	var name string
-	var list []__input
+	var list []input
 	var isList bool
 
 	list = append(list, expNull...)
@@ -31,7 +31,7 @@ func (my *Engine) buildExpressionInput(t graphql.Type) graphql.Type {
 	if isList {
 		list = append(list, expList...)
 	} else {
-		list = append(list, expScalar...)
+		list = append(list, expBase...)
 	}
 
 	if isList {
@@ -49,7 +49,7 @@ func (my *Engine) buildExpressionInput(t graphql.Type) graphql.Type {
 		if e.Type == nil {
 			e.Type = t
 		}
-		fields[e.Name] = &graphql.InputObjectFieldConfig{Type: e.Type, Description: e.Description}
+		fields[e.Name] = &graphql.InputObjectFieldConfig{Type: e.Type, Description: e.Desc}
 	}
 	input := graphql.NewInputObject(graphql.InputObjectConfig{Name: name, Fields: fields})
 	my.types[name] = input

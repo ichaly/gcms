@@ -10,29 +10,24 @@ import (
 	"time"
 )
 
-const User = "User"
-
 type UserSchema struct {
 	db     *gorm.DB
 	loader *boot.Loader[uint64, []*data.Content]
 }
 
-func NewUserSchema(d *gorm.DB, e *boot.Engine) core.Schema {
-	my := &UserSchema{db: d}
+func NewUserSchema(db *gorm.DB) core.Schema {
+	my := &UserSchema{db: db}
 	my.loader = boot.NewBatchedLoader(my.batchContents)
-	e.NewQuery(my.GetUsers)
-	e.NewBuilder(my.GetAge).To(User).Description("年龄")
-	e.NewBuilder(my.GetContents).To(User).Description("用户内容")
 	return my
 }
 
-func (my *UserSchema) GetUsers(p graphql.ResolveParams) ([]*data.User, error) {
+func (my *UserSchema) ResolveUsersForQuery(_ graphql.ResolveParams) ([]*data.User, error) {
 	var res []*data.User
 	err := my.db.Model(&data.User{}).Find(&res).Error
 	return res, err
 }
 
-func (my *UserSchema) GetAge(p graphql.ResolveParams) (int, error) {
+func (my *UserSchema) ResolveAgeForUser(p graphql.ResolveParams) (int, error) {
 	user := p.Source.(*data.User)
 	if user.Birthday.IsZero() {
 		return 0, nil
@@ -40,7 +35,7 @@ func (my *UserSchema) GetAge(p graphql.ResolveParams) (int, error) {
 	return time.Now().Year() - user.Birthday.Year(), nil
 }
 
-func (my *UserSchema) GetContents(p graphql.ResolveParams) func() ([]*data.Content, error) {
+func (my *UserSchema) ResolveContentsForUser(p graphql.ResolveParams) func() ([]*data.Content, error) {
 	uid := uint64(p.Source.(*data.User).ID)
 	return my.loader.Load(p.Context, uid)
 }
