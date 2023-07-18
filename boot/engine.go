@@ -44,23 +44,23 @@ func (my *Engine) Schema() (graphql.Schema, error) {
 	return graphql.NewSchema(config)
 }
 
-func (my *Engine) AddTo(resolver interface{}, objectName, fieldName, description string) error {
+func (my *Engine) Register(resolver interface{}, host, name, desc string) error {
 	if resolver == nil {
 		return fmt.Errorf("missing resolve funtion")
 	}
-	if fieldName == "" {
-		fieldName = getFuncName(resolver)
+	if name == "" {
+		name = getFuncName(resolver)
 	}
-	if fieldName == "" {
+	if name == "" {
 		return fmt.Errorf("missing field name")
 	}
-	val, ok := my.types[objectName]
+	val, ok := my.types[host]
 	if !ok {
-		return fmt.Errorf("missing object %s", objectName)
+		return fmt.Errorf("missing object %s", host)
 	}
 	obj, ok := val.(*graphql.Object)
 	if !ok {
-		return fmt.Errorf("invalid object %s", objectName)
+		return fmt.Errorf("invalid object %s", host)
 	}
 	typ := reflect.TypeOf(resolver)
 	if typ.Kind() != reflect.Func {
@@ -87,12 +87,12 @@ func (my *Engine) AddTo(resolver interface{}, objectName, fieldName, description
 			"sort":  {Type: my.types[src.Name()+"SortInput"]},
 			"where": {Type: my.types[src.Name()+"WhereInput"]},
 		}
-		if description == "" {
-			description = src.Description()
+		if desc == "" {
+			desc = src.Description()
 		}
 	}
-	obj.AddFieldConfig(fieldName, &graphql.Field{
-		Name: fieldName, Type: wrapType(out, src), Args: queryArgs, Description: description,
+	obj.AddFieldConfig(name, &graphql.Field{
+		Name: name, Type: wrapType(out, src), Args: queryArgs, Description: desc,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			f := reflect.ValueOf(resolver)
 			v := []reflect.Value{reflect.ValueOf(p)}
