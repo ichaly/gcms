@@ -14,7 +14,3 @@ type Content struct {
 func (Content) TableName() string {
 	return "sys_content"
 }
-
-func (Content) Description() string {
-	return `内容管理`
-}

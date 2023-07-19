@@ -175,7 +175,7 @@ func NewBatchedLoader[K comparable, V any](batchFn BatchFunc[K, V], opts ...Opti
 	loader := &Loader[K, V]{
 		batchFn:  batchFn,
 		inputCap: 1000,
-		wait:     16 * time.Millisecond,
+		wait:     10 * time.Millisecond,
 	}
 
 	// Apply options

@@ -26,7 +26,13 @@ type gqlRequest struct {
 	Variables     map[string]interface{} `json:"variables"`
 }
 
-func NewGraphql(r *Render, e *boot.Engine, _ SchemaGroup) (*Graphql, error) {
+func NewGraphql(r *Render, e *boot.Engine, g SchemaGroup) (*Graphql, error) {
+	for _, v := range g.All {
+		err := e.Register(v)
+		if err != nil {
+			return nil, err
+		}
+	}
 	s, err := e.Schema()
 	if err != nil {
 		return nil, err

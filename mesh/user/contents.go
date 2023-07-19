@@ -1,4 +1,4 @@
-package mesh
+package user
 
 import (
 	"context"
@@ -7,40 +7,37 @@ import (
 	"github.com/ichaly/gcms/core"
 	"github.com/ichaly/gcms/data"
 	"gorm.io/gorm"
-	"time"
 )
 
-type UserSchema struct {
+type Contents struct {
 	db     *gorm.DB
 	loader *boot.Loader[uint64, []*data.Content]
 }
 
-func NewUserSchema(db *gorm.DB) core.Schema {
-	my := &UserSchema{db: db}
+func NewContents(db *gorm.DB) core.Schema {
+	my := &Contents{db: db}
 	my.loader = boot.NewBatchedLoader(my.batchContents)
 	return my
 }
 
-func (my *UserSchema) ResolveUsersForQuery(_ graphql.ResolveParams) ([]*data.User, error) {
-	var res []*data.User
-	err := my.db.Model(&data.User{}).Find(&res).Error
-	return res, err
+func (*Contents) Name() string {
+	return "contents"
 }
 
-func (my *UserSchema) ResolveAgeForUser(p graphql.ResolveParams) (int, error) {
-	user := p.Source.(*data.User)
-	if user.Birthday.IsZero() {
-		return 0, nil
-	}
-	return time.Now().Year() - user.Birthday.Year(), nil
+func (*Contents) Host() interface{} {
+	return User
 }
 
-func (my *UserSchema) ResolveContentsForUser(p graphql.ResolveParams) func() ([]*data.Content, error) {
+func (*Contents) Description() string {
+	return "用户作品"
+}
+
+func (my *Contents) Resolve(p graphql.ResolveParams) func() ([]*data.Content, error) {
 	uid := uint64(p.Source.(*data.User).ID)
 	return my.loader.Load(p.Context, uid)
 }
 
-func (my *UserSchema) batchContents(_ context.Context, keys []uint64) []*boot.Result[[]*data.Content] {
+func (my *Contents) batchContents(_ context.Context, keys []uint64) []*boot.Result[[]*data.Content] {
 	var res []*data.Content
 	err := my.db.Model(&data.Content{}).Where("created_by in ?", keys).Find(&res).Error
 	values := make(map[uint64][]*data.Content)

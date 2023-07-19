@@ -7,69 +7,69 @@ import (
 )
 
 type Engine struct {
-	types    map[string]graphql.Type
-	builders []chainBuilder
+	types map[string]graphql.Type
 }
 
 func NewEngine() *Engine {
-	return &Engine{types: map[string]graphql.Type{
-		Query: graphql.NewObject(graphql.ObjectConfig{
-			Name: Query, Fields: graphql.Fields{},
-		}),
-		Mutation: graphql.NewObject(graphql.ObjectConfig{
-			Name: Mutation, Fields: graphql.Fields{},
-		}),
-		Subscription: graphql.NewObject(graphql.ObjectConfig{
-			Name: Subscription, Fields: graphql.Fields{},
-		}),
-	}}
+	return &Engine{types: map[string]graphql.Type{}}
 }
 
 func (my *Engine) Schema() (graphql.Schema, error) {
-	for _, b := range my.builders {
-		if err := b.build(my); err != nil {
-			panic(err)
-		}
-	}
 	config := graphql.SchemaConfig{}
-	if q := my.types[Query].(*graphql.Object); len(q.Fields()) > 0 {
+	if q := my.verifyObject("query"); q != nil {
 		config.Query = q
 	}
-	if m := my.types[Mutation].(*graphql.Object); len(m.Fields()) > 0 {
+	if m := my.verifyObject("mutation"); m != nil {
 		config.Mutation = m
 	}
-	if s := my.types[Subscription].(*graphql.Object); len(s.Fields()) > 0 {
+	if s := my.verifyObject("subscription"); s != nil {
 		config.Subscription = s
 	}
 	return graphql.NewSchema(config)
 }
 
-func (my *Engine) Register(resolver interface{}, host, name, desc string) error {
-	if resolver == nil {
+func (my *Engine) Register(node interface{}) error {
+	if node == nil {
+		return fmt.Errorf("node can't be nil")
+	}
+
+	val := reflect.ValueOf(node)
+	reflectType := reflect.TypeOf(node)
+
+	base, err := unwrap(reflectType)
+	if err != nil {
+		return err
+	}
+	var name, desc = base.Name(), ""
+	if _, o := reflectType.MethodByName("Host"); !o {
+		return fmt.Errorf("missing host")
+	}
+	if _, o := reflectType.MethodByName("Resolve"); !o {
 		return fmt.Errorf("missing resolve funtion")
 	}
-	if name == "" {
-		name = getFuncName(resolver)
+
+	if _, o := reflectType.MethodByName("Name"); o {
+		name = val.MethodByName("Name").Call(make([]reflect.Value, 0))[0].Interface().(string)
 	}
+	if _, o := reflectType.MethodByName("Description"); o {
+		desc = val.MethodByName("Description").Call(make([]reflect.Value, 0))[0].Interface().(string)
+	}
+
 	if name == "" {
 		return fmt.Errorf("missing field name")
 	}
-	val, ok := my.types[host]
-	if !ok {
-		return fmt.Errorf("missing object %s", host)
-	}
-	obj, ok := val.(*graphql.Object)
+
+	host := val.MethodByName("Host").Call(make([]reflect.Value, 0))[0].Interface()
+	graphqlType, err := parseType(reflect.TypeOf(host), "host",
+		my.asBuiltinScalar, my.asCustomScalar, my.asId, my.asEnum, my.asObject,
+	)
+	obj, ok := graphqlType.(*graphql.Object)
 	if !ok {
 		return fmt.Errorf("invalid object %s", host)
 	}
-	typ := reflect.TypeOf(resolver)
-	if typ.Kind() != reflect.Func {
-		return fmt.Errorf("resolve prototype should be a function")
-	}
-	if typ.NumOut() == 0 {
-		return fmt.Errorf("resolve prototype should return 1 or 2 values")
-	}
-	out := typ.Out(0)
+
+	resolver := val.MethodByName("Resolve")
+	out := resolver.Type().Out(0)
 	if out.Kind() == reflect.Func {
 		out = out.Out(0)
 	}
@@ -79,6 +79,7 @@ func (my *Engine) Register(resolver interface{}, host, name, desc string) error 
 	if err != nil {
 		return err
 	}
+
 	var queryArgs graphql.FieldConfigArgument
 	if _, ok := src.(*graphql.Object); ok {
 		queryArgs = graphql.FieldConfigArgument{
@@ -94,9 +95,7 @@ func (my *Engine) Register(resolver interface{}, host, name, desc string) error 
 	obj.AddFieldConfig(name, &graphql.Field{
 		Name: name, Type: wrapType(out, src), Args: queryArgs, Description: desc,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			f := reflect.ValueOf(resolver)
-			v := []reflect.Value{reflect.ValueOf(p)}
-			r := f.Call(v)
+			r := resolver.Call([]reflect.Value{reflect.ValueOf(p)})
 			if r[0].Type().Kind() == reflect.Func {
 				return func() (interface{}, error) {
 					return r[0].Call(nil)[0].Interface(), nil
@@ -109,4 +108,19 @@ func (my *Engine) Register(resolver interface{}, host, name, desc string) error 
 		},
 	})
 	return nil
+}
+
+func (my *Engine) verifyObject(name string) *graphql.Object {
+	val, ok := my.types[name]
+	if !ok {
+		return nil
+	}
+	obj, ok := val.(*graphql.Object)
+	if !ok {
+		return nil
+	}
+	if len(obj.Fields()) <= 0 {
+		return nil
+	}
+	return obj
 }

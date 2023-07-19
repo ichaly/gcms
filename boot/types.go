@@ -8,16 +8,21 @@ import (
 
 type typeParser func(typ reflect.Type) (graphql.Type, error)
 
-type input struct {
-	Name string
-	Desc string
-	Type graphql.Type
-}
+type (
+	query        struct{}
+	mutation     struct{}
+	subscription struct{}
+	input        struct {
+		Name string
+		Desc string
+		Type graphql.Type
+	}
+)
 
-const (
-	Query        = "Query"
-	Mutation     = "Mutation"
-	Subscription = "Subscription"
+var (
+	Query        = &query{}
+	Mutation     = &mutation{}
+	Subscription = &subscription{}
 )
 
 var (

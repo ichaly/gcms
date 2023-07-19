@@ -17,7 +17,3 @@ type User struct {
 func (User) TableName() string {
 	return "sys_user"
 }
-
-func (User) Description() string {
-	return `用户管理`
-}
