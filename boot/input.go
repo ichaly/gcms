@@ -57,6 +57,25 @@ func (my *Engine) buildExpressionInput(t graphql.Type) graphql.Type {
 	return input
 }
 
+func (my *Engine) buildDataInput(object *graphql.Object) graphql.Type {
+	name := object.Name() + "DataInput"
+	val, ok := my.types[name]
+	if ok {
+		return val
+	}
+
+	fields := graphql.InputObjectConfigFieldMap{}
+	for k, f := range object.Fields() {
+		fields[k] = &graphql.InputObjectFieldConfig{Type: f.Type}
+	}
+	input := graphql.NewInputObject(graphql.InputObjectConfig{
+		Name: name, Fields: fields,
+	})
+
+	my.types[name] = input
+	return input
+}
+
 func (my *Engine) buildSortInput(object *graphql.Object) graphql.Type {
 	name := object.Name() + "SortInput"
 	val, ok := my.types[name]

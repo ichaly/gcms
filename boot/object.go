@@ -46,6 +46,7 @@ func (my *Engine) buildObject(base reflect.Type) (*graphql.Object, error) {
 	}
 	my.types[name] = o
 
+	my.buildDataInput(o)
 	my.buildSortInput(o)
 	my.buildWhereInput(o)
 	return o, nil
