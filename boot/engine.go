@@ -75,6 +75,7 @@ func (my *Engine) Register(node interface{}) error {
 	}
 	if host.Name() == "mutation" {
 		args["data"] = &graphql.ArgumentConfig{Type: my.types[outType.Name()+"DataInput"]}
+		args["delete"] = &graphql.ArgumentConfig{Type: graphql.Boolean}
 	}
 	host.AddFieldConfig(name, &graphql.Field{
 		Type: wrapType(out, outType), Args: args, Description: desc,
