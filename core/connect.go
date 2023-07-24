@@ -19,7 +19,7 @@ func NewConnect(che Cache, cfg *Config, etg base.EntityGroup) (*gorm.DB, error) 
 	//	return nil, err
 	//}
 	if cfg.App.Debug {
-		err = db.AutoMigrate(etg.Entities...)
+		err = db.AutoMigrate(etg.All...)
 	}
 	if err != nil {
 		return nil, err

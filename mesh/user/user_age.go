@@ -7,26 +7,26 @@ import (
 	"time"
 )
 
-type Age struct {
+type age struct {
 }
 
 func NewAge() core.Schema {
-	return &Age{}
+	return &age{}
 }
 
-func (*Age) Name() string {
-	return "age"
-}
-
-func (*Age) Host() interface{} {
+func (*age) Host() interface{} {
 	return User
 }
 
-func (*Age) Description() string {
+func (*age) Name() string {
+	return "age"
+}
+
+func (*age) Description() string {
 	return "年龄"
 }
 
-func (my *Age) Resolve(p graphql.ResolveParams) (int, error) {
+func (my *age) Resolve(p graphql.ResolveParams) (int, error) {
 	user := p.Source.(*data.User)
 	if user.Birthday.IsZero() {
 		return 0, nil

@@ -9,35 +9,35 @@ import (
 	"gorm.io/gorm"
 )
 
-type Contents struct {
+type contents struct {
 	db     *gorm.DB
 	loader *boot.Loader[uint64, []*data.Content]
 }
 
 func NewContents(db *gorm.DB) core.Schema {
-	my := &Contents{db: db}
+	my := &contents{db: db}
 	my.loader = boot.NewBatchedLoader(my.batchContents)
 	return my
 }
 
-func (*Contents) Name() string {
+func (*contents) Name() string {
 	return "contents"
 }
 
-func (*Contents) Host() interface{} {
+func (*contents) Host() interface{} {
 	return User
 }
 
-func (*Contents) Description() string {
+func (*contents) Description() string {
 	return "用户作品"
 }
 
-func (my *Contents) Resolve(p graphql.ResolveParams) func() ([]*data.Content, error) {
+func (my *contents) Resolve(p graphql.ResolveParams) func() ([]*data.Content, error) {
 	uid := uint64(p.Source.(*data.User).ID)
 	return my.loader.Load(p.Context, uid)
 }
 
-func (my *Contents) batchContents(_ context.Context, keys []uint64) []*boot.Result[[]*data.Content] {
+func (my *contents) batchContents(_ context.Context, keys []uint64) []*boot.Result[[]*data.Content] {
 	var res []*data.Content
 	err := my.db.Model(&data.Content{}).Where("created_by in ?", keys).Find(&res).Error
 	values := make(map[uint64][]*data.Content)

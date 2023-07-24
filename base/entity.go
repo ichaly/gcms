@@ -8,7 +8,7 @@ import (
 
 type EntityGroup struct {
 	fx.In
-	Entities []interface{} `group:"entity"`
+	All []interface{} `group:"entity"`
 }
 
 type ID uint64

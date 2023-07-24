@@ -5,6 +5,8 @@ import (
 )
 
 type Schema interface {
+	Name() string
+	Host() interface{}
 }
 
 type SchemaGroup struct {
