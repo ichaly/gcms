@@ -1,10 +1,21 @@
 package core
 
 import (
+	"github.com/sony/sonyflake"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
 	"time"
 )
+
+var sf *sonyflake.Sonyflake
+
+func init() {
+	t, _ := time.Parse("2006-01-02", "2023-07-24")
+	sf = sonyflake.NewSonyflake(sonyflake.Settings{StartTime: t})
+	if sf == nil {
+		panic("sonyflake not created")
+	}
+}
 
 type EntityGroup struct {
 	fx.In
@@ -19,11 +30,14 @@ type Primary struct {
 	ID ID `gorm:"primary_key;AUTO_INCREMENT;comment:主键;"`
 }
 
-//func (my *Primary) BeforeCreate(tx *gorm.DB) error {
-//	uuid := uuid.NewV4().String()
-//	tx.Statement.SetColumn("ID", uuid)
-//	return nil
-//}
+func (Primary) BeforeCreate(tx *gorm.DB) error {
+	id, err := sf.NextID()
+	if err != nil {
+		return err
+	}
+	tx.Statement.SetColumn("ID", id)
+	return nil
+}
 
 type General struct {
 	State     int8      `gorm:"comment:状态;"`

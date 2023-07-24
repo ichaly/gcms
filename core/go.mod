@@ -10,10 +10,10 @@ require (
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/graphql-go/graphql v0.8.1
 	github.com/ichaly/gcms/base v0.0.0-20230717064929-099f475f49c5
-	github.com/ichaly/gcms/boot v0.0.0-20230717064929-099f475f49c5
 	github.com/ichaly/gcms/util v0.0.0-20230717064929-099f475f49c5
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.0.5
+	github.com/sony/sonyflake v1.1.0
 	github.com/spf13/viper v1.16.0
 	github.com/unrolled/render v1.6.0
 	go.uber.org/fx v1.20.0
@@ -32,7 +32,6 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.3.1 // indirect
