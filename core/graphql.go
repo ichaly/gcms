@@ -21,9 +21,9 @@ type Graphql struct {
 }
 
 type gqlRequest struct {
-	Query         string                 `json:"query"`
-	OperationName string                 `json:"operationName"`
-	Variables     map[string]interface{} `json:"variables"`
+	Query     string                 `json:"query"`
+	Operation string                 `json:"operationName"`
+	Variables map[string]interface{} `json:"variables"`
 }
 
 func NewGraphql(r *Render, e *boot.Engine, g SchemaGroup) (*Graphql, error) {
@@ -63,7 +63,7 @@ func (my *Graphql) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		query := r.URL.Query()
 		req.Query = query.Get("query")
-		req.OperationName = query.Get("operationName")
+		req.Operation = query.Get("operationName")
 		variables, ok := query["variables"]
 		if ok {
 			d := json.NewDecoder(strings.NewReader(variables[0]))
@@ -74,7 +74,6 @@ func (my *Graphql) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	case http.MethodPost:
 		d := json.NewDecoder(r.Body)
-		d.UseNumber()
 		if err := d.Decode(&req); err != nil {
 			panic(errors.Wrap(err, "Not a valid GraphQL request body"))
 		}
@@ -85,8 +84,8 @@ func (my *Graphql) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Context:        r.Context(),
 		Schema:         my.schema,
 		RequestString:  req.Query,
+		OperationName:  req.Operation,
 		VariableValues: req.Variables,
-		OperationName:  req.OperationName,
 	})
 	_ = my.render.JSON(w, res)
 }

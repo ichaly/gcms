@@ -5,6 +5,7 @@ import (
 	"github.com/ichaly/gcms/boot"
 	"github.com/ichaly/gcms/core"
 	"github.com/ichaly/gcms/data"
+	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 )
 
@@ -28,8 +29,15 @@ func (*mutation) Description() string {
 	return "用户管理"
 }
 
-func (my *mutation) Resolve(_ graphql.ResolveParams) ([]*data.User, error) {
-	var res []*data.User
-	err := my.db.Model(&data.User{}).Find(&res).Error
-	return res, err
+func (my *mutation) Resolve(p graphql.ResolveParams) (*data.User, error) {
+	var user *data.User
+	err := mapstructure.Decode(p.Args["data"], &user)
+	if err != nil {
+		return nil, err
+	}
+	err = my.db.Save(user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, err
 }
