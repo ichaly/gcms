@@ -10,27 +10,27 @@ import (
 
 var User = &data.User{}
 
-type users struct {
+type list struct {
 	db *gorm.DB
 }
 
-func NewUsers(db *gorm.DB, e *boot.Engine) core.Schema {
-	return &users{db: db}
+func NewList(db *gorm.DB) core.Schema {
+	return &list{db: db}
 }
 
-func (*users) Name() string {
+func (*list) Name() string {
 	return "users"
 }
 
-func (*users) Host() interface{} {
+func (*list) Host() interface{} {
 	return boot.Query
 }
 
-func (*users) Description() string {
+func (*list) Description() string {
 	return "用户列表"
 }
 
-func (my *users) Resolve(_ graphql.ResolveParams) ([]*data.User, error) {
+func (my *list) Resolve(_ graphql.ResolveParams) ([]*data.User, error) {
 	var res []*data.User
 	err := my.db.Model(&data.User{}).Find(&res).Error
 	return res, err

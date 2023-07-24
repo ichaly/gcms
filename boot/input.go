@@ -66,7 +66,7 @@ func (my *Engine) buildDataInput(object *graphql.Object) graphql.Type {
 
 	fields := graphql.InputObjectConfigFieldMap{}
 	for k, f := range object.Fields() {
-		fields[k] = &graphql.InputObjectFieldConfig{Type: f.Type}
+		fields[k] = &graphql.InputObjectFieldConfig{Type: f.Type, Description: f.Description}
 	}
 	input := graphql.NewInputObject(graphql.InputObjectConfig{
 		Name: name, Fields: fields,

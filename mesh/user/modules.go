@@ -8,7 +8,11 @@ var Modules = fx.Options(
 	fx.Provide(
 		fx.Annotated{
 			Group:  "schema",
-			Target: NewUsers,
+			Target: NewMutation,
+		},
+		fx.Annotated{
+			Group:  "schema",
+			Target: NewList,
 		},
 		fx.Annotated{
 			Group:  "schema",

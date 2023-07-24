@@ -73,6 +73,9 @@ func (my *Engine) Register(node interface{}) error {
 			"where": {Type: my.types[outType.Name()+"WhereInput"]},
 		}
 	}
+	if host.Name() == "mutation" {
+		args["data"] = &graphql.ArgumentConfig{Type: my.types[outType.Name()+"DataInput"]}
+	}
 	host.AddFieldConfig(name, &graphql.Field{
 		Type: wrapType(out, outType), Args: args, Description: desc,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
