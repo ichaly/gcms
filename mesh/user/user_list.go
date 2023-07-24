@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/ichaly/gcms/boot"
+	"github.com/ichaly/gcms/base"
 	"github.com/ichaly/gcms/core"
 	"github.com/ichaly/gcms/data"
 	"gorm.io/gorm"
@@ -23,7 +23,7 @@ func (*list) Name() string {
 }
 
 func (*list) Host() interface{} {
-	return boot.Query
+	return base.Query
 }
 
 func (*list) Description() string {

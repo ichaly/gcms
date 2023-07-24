@@ -1,17 +1,17 @@
 package data
 
 import (
-	"github.com/ichaly/gcms/base"
+	"github.com/ichaly/gcms/core"
 	"time"
 )
 
 type User struct {
-	Name     string    `gorm:"size:200;comment:名称"`
+	Name     string    `gorm:"index;size:200;comment:名称"`
 	Avatar   string    `gorm:"size:200;comment:头像"`
 	Nickname string    `gorm:"size:50;comment:昵称"`
 	Source   string    `gorm:"comment:来源"`
 	Birthday time.Time `gorm:"comment:生日"`
-	base.Entity
+	core.Entity
 }
 
 func (User) TableName() string {

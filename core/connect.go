@@ -2,14 +2,13 @@ package core
 
 import (
 	"fmt"
-	"github.com/ichaly/gcms/base"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-func NewConnect(che Cache, cfg *Config, etg base.EntityGroup) (*gorm.DB, error) {
+func NewConnect(che Cache, cfg *Config, etg EntityGroup) (*gorm.DB, error) {
 	db, err := gorm.Open(buildDialect(cfg.Database), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 	if err != nil {
 		return nil, err

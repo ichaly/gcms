@@ -1,4 +1,4 @@
-package boot
+package base
 
 import (
 	"github.com/graphql-go/graphql"

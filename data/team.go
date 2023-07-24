@@ -1,12 +1,12 @@
 package data
 
 import (
-	"github.com/ichaly/gcms/base"
+	"github.com/ichaly/gcms/core"
 )
 
 type Team struct {
 	Name string `gorm:"size:200;comment:名称"`
-	base.Entity
+	core.Entity
 }
 
 func (Team) TableName() string {

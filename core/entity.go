@@ -1,4 +1,4 @@
-package base
+package core
 
 import (
 	"go.uber.org/fx"
@@ -18,6 +18,12 @@ func (my ID) ID() {}
 type Primary struct {
 	ID ID `gorm:"primary_key;AUTO_INCREMENT;comment:主键;"`
 }
+
+//func (my *Primary) BeforeCreate(tx *gorm.DB) error {
+//	uuid := uuid.NewV4().String()
+//	tx.Statement.SetColumn("ID", uuid)
+//	return nil
+//}
 
 type General struct {
 	State     int8      `gorm:"comment:状态;"`

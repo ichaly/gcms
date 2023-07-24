@@ -1,6 +1,8 @@
 package data
 
-import "github.com/ichaly/gcms/base"
+import (
+	"github.com/ichaly/gcms/core"
+)
 
 type Content struct {
 	Title   string `gorm:"size:200;comment:标题"`
@@ -8,7 +10,7 @@ type Content struct {
 	Content string `gorm:"type:text;comment:内容"`
 	Source  string `gorm:"comment:来源"`
 	Kind    Kind   `gorm:"comment:类型"`
-	base.DeleteEntity
+	core.DeleteEntity
 }
 
 func (Content) TableName() string {

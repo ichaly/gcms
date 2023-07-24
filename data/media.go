@@ -1,6 +1,8 @@
 package data
 
-import "github.com/ichaly/gcms/base"
+import (
+	"github.com/ichaly/gcms/core"
+)
 
 type Media struct {
 	ContentId   int64  `gorm:"comment:内容ID"`
@@ -10,7 +12,7 @@ type Media struct {
 	Width       int64  `gorm:"comment:宽"`
 	Height      int64  `gorm:"comment:高"`
 	Description string `gorm:"type:text;comment:描述"`
-	base.Entity
+	core.Entity
 }
 
 func (Media) TableName() string {

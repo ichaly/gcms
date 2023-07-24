@@ -1,9 +1,11 @@
 package data
 
-import "github.com/ichaly/gcms/base"
+import (
+	"github.com/ichaly/gcms/core"
+)
 
 type Interact struct {
-	base.Primary
+	core.Primary
 	ContentId int64 `gorm:"comment:内容ID"`
 	View      int   `gorm:"comment:阅读量"`
 	Like      int   `gorm:"comment:点赞量"`

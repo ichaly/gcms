@@ -5,7 +5,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/base"
-	"github.com/ichaly/gcms/boot"
 	"github.com/pkg/errors"
 	"net/http"
 	"strings"
@@ -26,7 +25,7 @@ type gqlRequest struct {
 	Variables map[string]interface{} `json:"variables"`
 }
 
-func NewGraphql(r *Render, e *boot.Engine, g SchemaGroup) (*Graphql, error) {
+func NewGraphql(r *Render, e *base.Engine, g SchemaGroup) (*Graphql, error) {
 	for _, v := range g.All {
 		err := e.Register(v)
 		if err != nil {
@@ -55,7 +54,7 @@ func (my *Graphql) Init(r chi.Router) {
 func (my *Graphql) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
-			_ = my.render.JSON(w, base.ERROR.WithError(err.(error)), WithCode(http.StatusBadRequest))
+			_ = my.render.JSON(w, ERROR.WithError(err.(error)), WithCode(http.StatusBadRequest))
 		}
 	}()
 	var req gqlRequest

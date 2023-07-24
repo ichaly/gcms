@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/ichaly/gcms/boot"
+	"github.com/ichaly/gcms/base"
 	"github.com/ichaly/gcms/core"
 	"github.com/ichaly/gcms/data"
 	"github.com/mitchellh/mapstructure"
@@ -22,7 +22,7 @@ func (*mutation) Name() string {
 }
 
 func (*mutation) Host() interface{} {
-	return boot.Mutation
+	return base.Mutation
 }
 
 func (*mutation) Description() string {

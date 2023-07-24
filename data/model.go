@@ -1,11 +1,11 @@
 package data
 
 import (
-	"github.com/ichaly/gcms/base"
+	"github.com/ichaly/gcms/core"
 )
 
 type Model struct {
-	base.Entity
+	core.Entity
 }
 
 func (Model) TableName() string {

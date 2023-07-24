@@ -1,13 +1,13 @@
 package core
 
 import (
-	"github.com/ichaly/gcms/boot"
+	"github.com/ichaly/gcms/base"
 	"go.uber.org/fx"
 )
 
 var Modules = fx.Options(
 	fx.Provide(
-		boot.NewEngine,
+		base.NewEngine,
 		NewConfig,
 		NewStorage,
 		NewConnect,
