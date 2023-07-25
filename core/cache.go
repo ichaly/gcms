@@ -26,7 +26,7 @@ type Cache struct {
 // Name `gorm.Plugin` implements.
 func (my Cache) Name() string { return "gorm-cache" }
 
-func NewCache(s *cache.Cache[string]) Cache {
+func NewCache(s *cache.Cache[string]) gorm.Plugin {
 	return Cache{s, 30 * time.Minute, func(db *gorm.DB) string {
 		return fmt.Sprintf(
 			"sql:%s",

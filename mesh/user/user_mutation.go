@@ -7,6 +7,7 @@ import (
 	"github.com/ichaly/gcms/data"
 	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type mutation struct {
@@ -31,13 +32,13 @@ func (*mutation) Description() string {
 
 func (my *mutation) Resolve(p graphql.ResolveParams) (*data.User, error) {
 	var user *data.User
-	err := mapstructure.Decode(p.Args["data"], &user)
+	err := mapstructure.WeakDecode(p.Args["data"], &user)
 	if err != nil {
 		return nil, err
 	}
-	err = my.db.Save(user).Error
-	if err != nil {
-		return nil, err
-	}
+	err = my.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"name", "nickname"}),
+	}).Create(&user).Error
 	return user, err
 }

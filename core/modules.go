@@ -10,8 +10,18 @@ var Modules = fx.Options(
 		base.NewEngine,
 		NewConfig,
 		NewStorage,
-		NewConnect,
-		NewCache,
+		fx.Annotate(
+			NewConnect,
+			fx.ParamTags(``, `group:"gorm"`, `group:"entity"`),
+		),
+		fx.Annotated{
+			Group:  "gorm",
+			Target: NewSonyFlake,
+		},
+		fx.Annotated{
+			Group:  "gorm",
+			Target: NewCache,
+		},
 		NewRender,
 		NewRouter,
 		fx.Annotate(
