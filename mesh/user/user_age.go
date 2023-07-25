@@ -28,7 +28,7 @@ func (*age) Description() string {
 
 func (my *age) Resolve(p graphql.ResolveParams) (int, error) {
 	user := p.Source.(*data.User)
-	if user.Birthday.IsZero() {
+	if user.Birthday == nil || user.Birthday.IsZero() {
 		return 0, nil
 	}
 	return time.Now().Year() - user.Birthday.Year(), nil
