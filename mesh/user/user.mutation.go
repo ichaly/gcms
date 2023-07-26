@@ -13,7 +13,7 @@ type mutation struct {
 	db *gorm.DB
 }
 
-func NewMutation(db *gorm.DB) core.Schema {
+func NewUserMutation(db *gorm.DB) core.Schema {
 	return &mutation{db: db}
 }
 

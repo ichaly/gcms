@@ -10,7 +10,7 @@ import (
 type age struct {
 }
 
-func NewAge() core.Schema {
+func NewUserAge() core.Schema {
 	return &age{}
 }
 

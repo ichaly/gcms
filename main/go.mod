@@ -3,7 +3,6 @@ module github.com/ichaly/gcms/main
 go 1.20
 
 require (
-	github.com/ichaly/gcms/boot v0.0.0-20230717064929-099f475f49c5
 	github.com/ichaly/gcms/core v0.0.0-20230717064929-099f475f49c5
 	github.com/ichaly/gcms/data v0.0.0-20230717064929-099f475f49c5
 	github.com/ichaly/gcms/mesh v0.0.0-20230717064929-099f475f49c5

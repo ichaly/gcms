@@ -14,7 +14,7 @@ type contents struct {
 	loader *base.Loader[uint64, []*data.Content]
 }
 
-func NewContents(db *gorm.DB) core.Schema {
+func NewUserContents(db *gorm.DB) core.Schema {
 	my := &contents{db: db}
 	my.loader = base.NewBatchedLoader(my.batchContents)
 	return my

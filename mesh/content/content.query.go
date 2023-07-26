@@ -10,28 +10,28 @@ import (
 
 var Content = &data.Content{}
 
-type contents struct {
+type query struct {
 	db *gorm.DB
 }
 
-func NewContents(db *gorm.DB) core.Schema {
-	return &contents{db: db}
+func NewContentQuery(db *gorm.DB) core.Schema {
+	return &query{db: db}
 }
 
-func (my *contents) Resolve(_ graphql.ResolveParams) ([]*data.Content, error) {
+func (my *query) Resolve(_ graphql.ResolveParams) ([]*data.Content, error) {
 	var res []*data.Content
 	err := my.db.Model(&data.Content{}).Find(&res).Error
 	return res, err
 }
 
-func (*contents) Name() string {
-	return "contents"
+func (*query) Name() string {
+	return "query"
 }
 
-func (*contents) Host() interface{} {
+func (*query) Host() interface{} {
 	return base.Query
 }
 
-func (*contents) Description() string {
+func (*query) Description() string {
 	return "内容列表"
 }
