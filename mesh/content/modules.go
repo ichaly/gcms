@@ -10,5 +10,9 @@ var Modules = fx.Options(
 			Group:  "schema",
 			Target: NewContentQuery,
 		},
+		fx.Annotated{
+			Group:  "schema",
+			Target: NewContentMutation,
+		},
 	),
 )

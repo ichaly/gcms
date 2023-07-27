@@ -1,4 +1,4 @@
-package user
+package content
 
 import (
 	"github.com/graphql-go/graphql"
@@ -13,16 +13,16 @@ type mutation struct {
 	db *gorm.DB
 }
 
-func NewUserMutation(db *gorm.DB) base.Schema {
+func NewContentMutation(db *gorm.DB) base.Schema {
 	return &mutation{db: db}
 }
 
 func (*mutation) Name() string {
-	return "users"
+	return "contents"
 }
 
 func (*mutation) Description() string {
-	return "用户管理"
+	return "内容管理"
 }
 
 func (*mutation) Host() interface{} {
@@ -30,16 +30,16 @@ func (*mutation) Host() interface{} {
 }
 
 func (*mutation) Type() interface{} {
-	return User
+	return Content
 }
 
 func (my *mutation) Resolve(p graphql.ResolveParams) (interface{}, error) {
-	var args core.Params[*data.User]
+	var args core.Params[*data.Content]
 	err := mapstructure.WeakDecode(p.Args, &args)
 	if err != nil {
 		return nil, err
 	}
-	tx := my.db.WithContext(p.Context).Model(User)
+	tx := my.db.WithContext(p.Context).Model(Content)
 	if args.Where != nil {
 		core.ParseWhere(args.Where, tx)
 	}

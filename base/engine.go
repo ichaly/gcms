@@ -14,33 +14,19 @@ func NewEngine() *Engine {
 	return &Engine{types: map[string]graphql.Type{}}
 }
 
-func (my *Engine) Register(node interface{}) error {
+func (my *Engine) Register(node Schema) error {
 	if node == nil {
 		return fmt.Errorf("node can't be nil")
 	}
-	value := reflect.ValueOf(node)
 
-	hostFunc := value.MethodByName("Host")
-	if !hostFunc.IsValid() {
-		return fmt.Errorf("missing hostFunc")
-	}
-	resolveFunc := value.MethodByName("Resolve")
-	if !resolveFunc.IsValid() {
-		return fmt.Errorf("missing resolve funtion")
-	}
-
-	out := resolveFunc.Type().Out(0)
-	if out.Kind() == reflect.Func {
-		out = out.Out(0)
-	}
+	out := reflect.TypeOf(node.Type())
 	outType, err := parseType(out, "result",
 		my.asBuiltinScalar, my.asCustomScalar, my.asId, my.asEnum, my.asObject,
 	)
 	if err != nil {
 		return err
 	}
-
-	obj := reflect.TypeOf(hostFunc.Call(make([]reflect.Value, 0))[0].Interface())
+	obj := reflect.TypeOf(node.Host())
 	objType, err := parseType(obj, "host",
 		my.asBuiltinScalar, my.asCustomScalar, my.asId, my.asEnum, my.asObject,
 	)
@@ -48,20 +34,9 @@ func (my *Engine) Register(node interface{}) error {
 		return err
 	}
 
-	var name, desc string
-	if nameFunc := value.MethodByName("Name"); nameFunc.IsValid() {
-		name = nameFunc.Call(make([]reflect.Value, 0))[0].Interface().(string)
-	}
-	if descFunc := value.MethodByName("Description"); descFunc.IsValid() {
-		desc = descFunc.Call(make([]reflect.Value, 0))[0].Interface().(string)
-	}
-
-	if name == "" {
-		return fmt.Errorf("missing field name")
-	}
 	host, ok := objType.(*graphql.Object)
 	if !ok {
-		return fmt.Errorf("invalid host %s", obj)
+		return fmt.Errorf("invalid host %s", node.Host())
 	}
 
 	var args graphql.FieldConfigArgument
@@ -77,20 +52,8 @@ func (my *Engine) Register(node interface{}) error {
 		args["data"] = &graphql.ArgumentConfig{Type: my.types[outType.Name()+"DataInput"]}
 		args["delete"] = &graphql.ArgumentConfig{Type: graphql.Boolean}
 	}
-	host.AddFieldConfig(name, &graphql.Field{
-		Type: wrapType(out, outType), Args: args, Description: desc,
-		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			r := resolveFunc.Call([]reflect.Value{reflect.ValueOf(p)})
-			if r[0].Type().Kind() == reflect.Func {
-				return func() (interface{}, error) {
-					return r[0].Call(nil)[0].Interface(), nil
-				}, nil
-			} else {
-				res := r[0].Interface()
-				err, _ := r[1].Interface().(error)
-				return res, err
-			}
-		},
+	host.AddFieldConfig(node.Name(), &graphql.Field{
+		Type: wrapType(out, outType), Args: args, Resolve: node.Resolve, Description: node.Description(),
 	})
 	return nil
 }

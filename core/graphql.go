@@ -6,6 +6,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/base"
 	"github.com/pkg/errors"
+	"go.uber.org/fx"
 	"net/http"
 	"strings"
 )
@@ -17,6 +18,11 @@ const (
 type Graphql struct {
 	render *Render
 	schema graphql.Schema
+}
+
+type SchemaGroup struct {
+	fx.In
+	All []base.Schema `group:"schema"`
 }
 
 type gqlRequest struct {

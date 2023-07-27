@@ -15,7 +15,7 @@ type query struct {
 	db *gorm.DB
 }
 
-func NewUserQuery(db *gorm.DB) core.Schema {
+func NewUserQuery(db *gorm.DB) base.Schema {
 	return &query{db: db}
 }
 
@@ -23,22 +23,26 @@ func (*query) Name() string {
 	return "users"
 }
 
-func (*query) Host() interface{} {
-	return base.Query
-}
-
 func (*query) Description() string {
 	return "用户列表"
 }
 
-func (my *query) Resolve(p graphql.ResolveParams) ([]*data.User, error) {
+func (*query) Host() interface{} {
+	return base.Query
+}
+
+func (my *query) Type() interface{} {
+	return []*data.User{}
+}
+
+func (my *query) Resolve(p graphql.ResolveParams) (interface{}, error) {
 	var args core.Params[*data.User]
 	err := mapstructure.WeakDecode(p.Args, &args)
 	if err != nil {
 		return nil, err
 	}
 
-	tx := my.db.Model(User)
+	tx := my.db.WithContext(p.Context).Model(User)
 	if args.Where != nil {
 		core.ParseWhere(args.Where, tx)
 	}
