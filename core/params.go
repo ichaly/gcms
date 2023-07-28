@@ -53,3 +53,18 @@ func ParseWhere(data map[string]interface{}, tx *gorm.DB) {
 		}
 	}
 }
+
+func ParseSort(data map[string]string, tx *gorm.DB) {
+	for k, v := range data {
+		switch v {
+		case "ASC_NULLS_FIRST":
+		case "ASC_NULLS_LAST":
+		case "DESC_NULLS_FIRST":
+		case "DESC_NULLS_LAST":
+		case "ASC":
+		case "DESC":
+		default:
+			tx = tx.Order(fmt.Sprintf("%s %s", k, v))
+		}
+	}
+}

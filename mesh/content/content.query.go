@@ -3,6 +3,7 @@ package content
 import (
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/base"
+	"github.com/ichaly/gcms/core"
 	"github.com/ichaly/gcms/data"
 	"gorm.io/gorm"
 )
@@ -34,7 +35,5 @@ func (*query) Type() interface{} {
 }
 
 func (my *query) Resolve(p graphql.ResolveParams) (interface{}, error) {
-	var res []*data.Content
-	err := my.db.WithContext(p.Context).Model(&data.Content{}).Find(&res).Error
-	return res, err
+	return core.QueryResolver[*data.Content](p, my.db)
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/ichaly/gcms/base"
 	"github.com/ichaly/gcms/core"
 	"github.com/ichaly/gcms/data"
-	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 )
 
@@ -36,18 +35,5 @@ func (my *query) Type() interface{} {
 }
 
 func (my *query) Resolve(p graphql.ResolveParams) (interface{}, error) {
-	var args core.Params[*data.User]
-	err := mapstructure.WeakDecode(p.Args, &args)
-	if err != nil {
-		return nil, err
-	}
-
-	tx := my.db.WithContext(p.Context).Model(User)
-	if args.Where != nil {
-		core.ParseWhere(args.Where, tx)
-	}
-
-	var res []*data.User
-	err = tx.Find(&res).Error
-	return res, err
+	return core.QueryResolver[*data.User](p, my.db)
 }
