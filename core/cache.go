@@ -63,7 +63,7 @@ func (my Cache) query(db *gorm.DB) {
 	// get from cache
 	val, err := my.Cache.Get(db.Statement.Context, cacheKey)
 	if err == nil {
-		if err = util.UnmarshalString(val, db.Statement.Dest); err == nil {
+		if err = util.UnmarshalJson(val, db.Statement.Dest); err == nil {
 			return
 		}
 	}
@@ -72,7 +72,7 @@ func (my Cache) query(db *gorm.DB) {
 	my.queryFromDB(db, cacheKey)
 
 	// add to cache
-	if val, err = util.MarshalString(db.Statement.Dest); err == nil {
+	if val, err = util.MarshalJson(db.Statement.Dest); err == nil {
 		_ = my.Cache.Set(db.Statement.Context, cacheKey, val, store.WithExpiration(my.exp), store.WithTags([]string{db.Statement.Table}))
 	}
 }

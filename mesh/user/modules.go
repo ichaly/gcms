@@ -20,6 +20,10 @@ var Modules = fx.Options(
 		},
 		fx.Annotated{
 			Group:  "schema",
+			Target: NewUserToken,
+		},
+		fx.Annotated{
+			Group:  "schema",
 			Target: NewUserContents,
 		},
 	),

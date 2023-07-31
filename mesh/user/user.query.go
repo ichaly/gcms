@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/base"
 	"github.com/ichaly/gcms/core"
@@ -35,5 +36,11 @@ func (my *query) Type() interface{} {
 }
 
 func (my *query) Resolve(p graphql.ResolveParams) (interface{}, error) {
+	if where, ok := p.Args["where"].(map[string]interface{}); ok {
+		if val, ok := where["password"]; ok {
+			delete(where, "password")
+			fmt.Println(val)
+		}
+	}
 	return core.QueryResolver[*data.User](p, my.db)
 }
