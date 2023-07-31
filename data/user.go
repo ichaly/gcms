@@ -26,10 +26,14 @@ func (*User) Description() string {
 }
 
 func (my *User) BeforeCreate(tx *gorm.DB) error {
-	return my.BeforeUpdate(tx)
+	return my.encryptPassword(tx)
 }
 
 func (my *User) BeforeUpdate(tx *gorm.DB) error {
+	return my.encryptPassword(tx)
+}
+
+func (my *User) encryptPassword(tx *gorm.DB) error {
 	if my.Password == "" {
 		return nil
 	}
@@ -37,6 +41,6 @@ func (my *User) BeforeUpdate(tx *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	my.Password = string(hash)
+	tx.Statement.SetColumn("Password", string(hash))
 	return nil
 }
