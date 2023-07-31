@@ -9,11 +9,12 @@ import (
 )
 
 type mutation struct {
-	db *gorm.DB
+	db       *gorm.DB
+	validate *core.Validate
 }
 
-func NewContentMutation(db *gorm.DB) base.Schema {
-	return &mutation{db: db}
+func NewContentMutation(d *gorm.DB, v *core.Validate) base.Schema {
+	return &mutation{db: d, validate: v}
 }
 
 func (*mutation) Name() string {
@@ -33,5 +34,5 @@ func (*mutation) Type() interface{} {
 }
 
 func (my *mutation) Resolve(p graphql.ResolveParams) (interface{}, error) {
-	return core.MutationResolver[*data.Content](p, my.db)
+	return core.MutationResolver[*data.Content](p, my.db, my.validate)
 }

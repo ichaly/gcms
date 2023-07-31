@@ -10,6 +10,7 @@ var Modules = fx.Options(
 		base.NewEngine,
 		NewConfig,
 		NewStorage,
+		NewValidate,
 		fx.Annotate(
 			NewConnect,
 			fx.ParamTags(``, `group:"gorm"`, `group:"entity"`),

@@ -6,7 +6,7 @@ import (
 )
 
 type User struct {
-	Name        string     `gorm:"size:200;comment:名称;index:,unique"`
+	Name        string     `gorm:"size:200;comment:名称;index:,unique" validate:"required"`
 	Avatar      string     `gorm:"size:200;comment:头像"`
 	Nickname    string     `gorm:"size:50;comment:昵称"`
 	Source      string     `gorm:"comment:来源"`

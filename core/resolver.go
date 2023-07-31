@@ -34,7 +34,7 @@ func QueryResolver[T any](in graphql.ResolveParams, db *gorm.DB) (interface{}, e
 	return res, err
 }
 
-func MutationResolver[T any](in graphql.ResolveParams, db *gorm.DB) (interface{}, error) {
+func MutationResolver[T any](in graphql.ResolveParams, db *gorm.DB, v *Validate) (interface{}, error) {
 	var p Params[T]
 	err := mapstructure.WeakDecode(in.Args, &p)
 	if err != nil {
@@ -46,6 +46,10 @@ func MutationResolver[T any](in graphql.ResolveParams, db *gorm.DB) (interface{}
 	}
 	if p.Delete {
 		err = tx.Delete(&p.Data).Error
+		return nil, err
+	}
+	err = v.Struct(p.Data)
+	if err != nil {
 		return nil, err
 	}
 	err = tx.Save(&p.Data).Error
