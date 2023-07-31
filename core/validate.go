@@ -6,7 +6,7 @@ import (
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
-	zh_translations "github.com/go-playground/validator/v10/translations/zh"
+	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
 	"strings"
 )
 
@@ -20,7 +20,7 @@ func NewValidate() *Validate {
 	uni := ut.New(z, z)
 	t, _ := uni.GetTranslator("zh")
 	v := validator.New()
-	_ = zh_translations.RegisterDefaultTranslations(v, t)
+	_ = zhTranslations.RegisterDefaultTranslations(v, t)
 	return &Validate{validate: v, translate: t}
 }
 
