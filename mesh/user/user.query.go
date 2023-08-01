@@ -1,11 +1,12 @@
 package user
 
 import (
-	"fmt"
 	"github.com/graphql-go/graphql"
 	"github.com/ichaly/gcms/base"
 	"github.com/ichaly/gcms/core"
 	"github.com/ichaly/gcms/data"
+	"github.com/ichaly/gcms/util"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -36,11 +37,21 @@ func (my *query) Type() interface{} {
 }
 
 func (my *query) Resolve(p graphql.ResolveParams) (interface{}, error) {
-	if where, ok := p.Args["where"].(map[string]interface{}); ok {
-		if val, ok := where["password"]; ok {
-			delete(where, "password")
-			fmt.Println(val)
+	password := util.EraseMap(p.Args, "where.password")
+	res, err := core.QueryResolver[*data.User](p, my.db)
+	if err != nil {
+		return nil, err
+	}
+	if password == nil {
+		return res, nil
+	}
+	if users, ok := res.([]*data.User); ok {
+		for _, u := range users {
+			err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password.(map[string]interface{})["eq"].(string)))
+			if err == nil {
+				return []*data.User{u}, nil
+			}
 		}
 	}
-	return core.QueryResolver[*data.User](p, my.db)
+	return nil, nil
 }
