@@ -6,6 +6,6 @@ use (
 	./data
 	./util
 	./zlog
-	./mesh
+	./view
 	./main
 )

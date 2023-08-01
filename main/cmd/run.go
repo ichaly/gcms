@@ -22,7 +22,7 @@ var runCmd = &cobra.Command{
 		fx.New(
 			core.Modules,
 			data.Modules,
-			mesh.Modules,
+			view.Modules,
 			fx.Supply(configFile),
 		).Run()
 	},

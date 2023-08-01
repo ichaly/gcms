@@ -1,4 +1,4 @@
-package mesh
+package view
 
 import (
 	"github.com/ichaly/gcms/mesh/content"
