@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 	"net/http"
 	"time"
@@ -15,16 +15,15 @@ var (
 	BuildTime string
 )
 
-func Bootstrap(l fx.Lifecycle, c *Config, h *chi.Mux, p PluginGroup) {
+func Bootstrap(l fx.Lifecycle, c *Config, e *gin.Engine, g PluginGroup) {
 	Version = "0.0.1"
 	GitHash = "Unknown"
 	BuildTime = time.Now().Format("2006-01-02 15:04:05")
-	h.Group(func(h chi.Router) {
-		for _, p := range p.Plugins {
-			p.Init(h)
-		}
-	})
-	srv := &http.Server{Addr: fmt.Sprintf(":%v", c.App.Port), Handler: h}
+	r := e.Group("")
+	for _, p := range g.Plugins {
+		p.Init(r)
+	}
+	srv := &http.Server{Addr: fmt.Sprintf(":%v", c.App.Port), Handler: e}
 	l.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {

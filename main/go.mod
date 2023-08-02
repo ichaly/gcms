@@ -28,6 +28,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/ichaly/gcms/base v0.0.0-20230619160556-b62fd080b2df // indirect
+	github.com/ichaly/gcms/boot v0.0.0-20230724121905-722a5d7a6c72 // indirect
 	github.com/ichaly/gcms/util v0.0.0-20230619160556-b62fd080b2df // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

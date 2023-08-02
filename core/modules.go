@@ -9,6 +9,7 @@ var Modules = fx.Options(
 	fx.Provide(
 		base.NewEngine,
 		NewConfig,
+		NewServer,
 		NewStorage,
 		NewValidate,
 		fx.Annotate(
@@ -23,8 +24,6 @@ var Modules = fx.Options(
 			Group:  "gorm",
 			Target: NewCache,
 		},
-		NewRender,
-		NewRouter,
 		fx.Annotate(
 			NewGraphql,
 			fx.As(new(Plugin)),

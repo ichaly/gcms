@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 )
 
@@ -14,5 +14,5 @@ type PluginGroup struct {
 type Plugin interface {
 	Name() string
 	Protected() bool
-	Init(r chi.Router)
+	Init(*gin.RouterGroup)
 }

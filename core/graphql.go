@@ -1,22 +1,19 @@
 package core
 
 import (
-	"encoding/json"
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/graphql/gqlerrors"
 	"github.com/ichaly/gcms/base"
-	"github.com/pkg/errors"
 	"go.uber.org/fx"
 	"net/http"
-	"strings"
 )
 
 const (
-	apiEndpoint = "/api"
+	apiEndpoint = "/graphql"
 )
 
 type Graphql struct {
-	render *Render
 	schema graphql.Schema
 }
 
@@ -26,12 +23,12 @@ type SchemaGroup struct {
 }
 
 type gqlRequest struct {
-	Query     string                 `json:"query"`
-	Operation string                 `json:"operationName"`
-	Variables map[string]interface{} `json:"variables"`
+	Query     string                 `form:"query"`
+	Operation string                 `form:"operationName" json:"operationName"`
+	Variables map[string]interface{} `form:"variables"`
 }
 
-func NewGraphql(r *Render, e *base.Engine, g SchemaGroup) (*Graphql, error) {
+func NewGraphql(e *base.Engine, g SchemaGroup) (*Graphql, error) {
 	for _, v := range g.All {
 		err := e.Register(v)
 		if err != nil {
@@ -42,55 +39,34 @@ func NewGraphql(r *Render, e *base.Engine, g SchemaGroup) (*Graphql, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Graphql{schema: s, render: r}, nil
+	return &Graphql{schema: s}, nil
 }
 
 func (my *Graphql) Name() string {
 	return "Graphql"
 }
 
+func (my *Graphql) Init(r *gin.RouterGroup) {
+	r.Match([]string{http.MethodGet, http.MethodPost}, apiEndpoint, my.Handler)
+}
+
 func (my *Graphql) Protected() bool {
-	return false
+	return true
 }
 
-func (my *Graphql) Init(r chi.Router) {
-	r.Handle(apiEndpoint, my)
-}
-
-func (my *Graphql) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	defer func() {
-		if err := recover(); err != nil {
-			_ = my.render.JSON(w, ERROR.WithError(err.(error)), WithCode(http.StatusBadRequest))
-		}
-	}()
+func (my *Graphql) Handler(c *gin.Context) {
 	var req gqlRequest
-	switch r.Method {
-	case http.MethodGet:
-		query := r.URL.Query()
-		req.Query = query.Get("query")
-		req.Operation = query.Get("operationName")
-		variables, ok := query["variables"]
-		if ok {
-			d := json.NewDecoder(strings.NewReader(variables[0]))
-			d.UseNumber()
-			if err := d.Decode(&req.Variables); err != nil {
-				panic(errors.Wrap(err, "Not a valid GraphQL request body"))
-			}
-		}
-	case http.MethodPost:
-		d := json.NewDecoder(r.Body)
-		if err := d.Decode(&req); err != nil {
-			panic(errors.Wrap(err, "Not a valid GraphQL request body"))
-		}
-	default:
-		panic(errors.New("Unrecognised request method.  Please use GET or POST for GraphQL requests"))
+	err := c.ShouldBind(&req)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"errors": gqlerrors.FormatErrors(err)})
+		return
 	}
 	res := graphql.Do(graphql.Params{
-		Context:        r.Context(),
+		Context:        c,
 		Schema:         my.schema,
 		RequestString:  req.Query,
 		OperationName:  req.Operation,
 		VariableValues: req.Variables,
 	})
-	_ = my.render.JSON(w, res)
+	c.JSON(http.StatusOK, res)
 }
