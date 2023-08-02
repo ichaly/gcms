@@ -20,7 +20,7 @@ func Bootstrap(l fx.Lifecycle, c *Config, e *gin.Engine, g PluginGroup) {
 	GitHash = "Unknown"
 	BuildTime = time.Now().Format("2006-01-02 15:04:05")
 	r := e.Group("")
-	for _, p := range g.Plugins {
+	for _, p := range g.All {
 		p.Init(r)
 	}
 	srv := &http.Server{Addr: fmt.Sprintf(":%v", c.App.Port), Handler: e}
@@ -31,7 +31,6 @@ func Bootstrap(l fx.Lifecycle, c *Config, e *gin.Engine, g PluginGroup) {
 				err := srv.ListenAndServe()
 				if err != nil {
 					fmt.Printf("%v failed to start: %v", c.App.Name, err)
-					return
 				}
 			}()
 			return nil

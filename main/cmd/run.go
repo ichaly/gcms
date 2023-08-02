@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/ichaly/gcms/auth"
 	"github.com/ichaly/gcms/core"
 	"github.com/ichaly/gcms/data"
 	"github.com/ichaly/gcms/mesh"
@@ -20,6 +21,7 @@ var runCmd = &cobra.Command{
 			configFile = filepath.Join("../conf", "dev.yml")
 		}
 		fx.New(
+			auth.Modules,
 			core.Modules,
 			data.Modules,
 			view.Modules,

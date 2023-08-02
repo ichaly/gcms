@@ -47,14 +47,10 @@ func (my *Graphql) Name() string {
 }
 
 func (my *Graphql) Init(r *gin.RouterGroup) {
-	r.Match([]string{http.MethodGet, http.MethodPost}, apiEndpoint, my.Handler)
+	r.Match([]string{http.MethodGet, http.MethodPost}, apiEndpoint, my.handler)
 }
 
-func (my *Graphql) Protected() bool {
-	return true
-}
-
-func (my *Graphql) Handler(c *gin.Context) {
+func (my *Graphql) handler(c *gin.Context) {
 	var req gqlRequest
 	err := c.ShouldBind(&req)
 	if err != nil {
