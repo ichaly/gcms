@@ -58,7 +58,7 @@ func (my *Graphql) handler(c *gin.Context) {
 		return
 	}
 	res := graphql.Do(graphql.Params{
-		Context:        c,
+		Context:        c.Request.Context(),
 		Schema:         my.schema,
 		RequestString:  req.Query,
 		OperationName:  req.Operation,
