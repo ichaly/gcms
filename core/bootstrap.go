@@ -19,7 +19,7 @@ func Bootstrap(l fx.Lifecycle, c *Config, e *gin.Engine, g PluginGroup) {
 	Version = "0.0.1"
 	GitHash = "Unknown"
 	BuildTime = time.Now().Format("2006-01-02 15:04:05")
-	r := e.Group("")
+	r := e.Group("/")
 	for _, p := range g.All {
 		p.Init(r)
 	}

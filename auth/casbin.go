@@ -18,7 +18,7 @@ func (my *Casbin) Name() string {
 }
 
 func (my *Casbin) Init(r *gin.RouterGroup) {
-	r.Group("/api").Use(my.handler())
+	r.Use(my.handler())
 }
 
 func (my *Casbin) handler() gin.HandlerFunc {

@@ -20,7 +20,7 @@ func (my *Graphql) Name() string {
 }
 
 func (my *Graphql) Init(r *gin.RouterGroup) {
-	r.Group("/api/graphql").Use(my.handler())
+	r.Group("/graphql").Use(my.handler())
 }
 
 func (my *Graphql) handler() gin.HandlerFunc {
