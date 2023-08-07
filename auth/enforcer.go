@@ -11,7 +11,7 @@ func NewEnforcer(d *gorm.DB) (*casbin.Enforcer, error) {
 	if err != nil {
 		return nil, err
 	}
-	e, err := casbin.NewEnforcer("../conf/casbin.conf", a)
+	e, err := casbin.NewEnforcer("./conf/casbin.conf", a)
 	if err != nil {
 		return nil, err
 	}

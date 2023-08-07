@@ -14,11 +14,11 @@ var configFile string
 
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "version subcommand show git version info.",
+	Short: "Start Service.",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if configFile == "" {
-			configFile = filepath.Join("../conf", "dev.yml")
+			configFile = filepath.Join("./conf", "dev.yml")
 		}
 		fx.New(
 			auth.Modules,

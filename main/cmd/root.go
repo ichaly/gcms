@@ -8,7 +8,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "gcms",
-	Short: "CMS system implemented in Golang.",
+	Short: "Content management system implemented by Golang.",
 }
 
 func Execute() {
