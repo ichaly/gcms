@@ -7,20 +7,30 @@ import (
 
 var Modules = fx.Options(
 	fx.Provide(
-		NewEnforcer,
 		fx.Annotate(
 			NewCros,
-			fx.As(new(core.Plugin)),
+			fx.ResultTags(`group:"middleware"`),
+		),
+		//Oauth2认证
+		NewOauthServer,
+		NewOauthTokenStore,
+		NewOauthClientStore,
+		fx.Annotate(
+			NewOauthVerify,
 			fx.ResultTags(`group:"middleware"`),
 		),
 		fx.Annotate(
+			NewOauth,
+			fx.ResultTags(`group:"plugin"`),
+		),
+		//Casbin鉴权
+		NewEnforcer,
+		fx.Annotate(
 			NewCasbin,
-			fx.As(new(core.Plugin)),
 			fx.ResultTags(`group:"middleware"`),
 		),
 		fx.Annotate(
 			NewGraphql,
-			fx.As(new(core.Plugin)),
 			fx.ResultTags(`group:"middleware"`),
 		),
 		fx.Annotate(

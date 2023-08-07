@@ -7,6 +7,7 @@ import (
 	"github.com/graphql-go/graphql/gqlerrors"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/parser"
+	"github.com/ichaly/gcms/core"
 	"net/http"
 )
 
@@ -14,7 +15,7 @@ type Graphql struct {
 	enforcer *casbin.Enforcer
 }
 
-func NewGraphql(e *casbin.Enforcer) (*Graphql, error) {
+func NewGraphql(e *casbin.Enforcer) (core.Plugin, error) {
 	return &Graphql{enforcer: e}, nil
 }
 
@@ -42,7 +43,8 @@ func (my *Graphql) handler() gin.HandlerFunc {
 				for _, s := range d.GetSelectionSet().Selections {
 					switch f := s.(type) {
 					case *ast.Field:
-						ok, err := my.enforcer.Enforce("admin", f.Name.Value, d.GetOperation())
+						sub := c.Request.Context().Value(core.UserContextKey)
+						ok, err := my.enforcer.Enforce(sub, f.Name.Value, d.GetOperation())
 						if err != nil {
 							return
 						}
