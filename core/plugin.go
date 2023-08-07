@@ -7,10 +7,11 @@ import (
 
 type PluginGroup struct {
 	fx.In
-	All []Plugin `group:"plugin"`
+	Plugins     []Plugin `group:"plugin"`
+	Middlewares []Plugin `group:"middleware"`
 }
 
 type Plugin interface {
-	Name() string
-	Init(*gin.RouterGroup)
+	Base() string
+	Init(gin.IRouter)
 }

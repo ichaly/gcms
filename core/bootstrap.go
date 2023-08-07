@@ -13,14 +13,22 @@ var (
 	Version   string
 	GitHash   string
 	BuildTime string
+	routers   = make(map[string]gin.IRouter)
 )
 
 func Bootstrap(l fx.Lifecycle, c *Config, e *gin.Engine, g PluginGroup) {
 	Version = "0.0.1"
 	GitHash = "Unknown"
 	BuildTime = time.Now().Format("2006-01-02 15:04:05")
-	r := e.Group("/")
-	for _, p := range g.All {
+	all := append(g.Middlewares, g.Plugins...)
+	for _, p := range all {
+		r, ok := routers[p.Base()]
+		if p.Base() == "" {
+			r = e
+		} else if !ok {
+			r = e.Group(p.Base())
+			routers[p.Base()] = r
+		}
 		p.Init(r)
 	}
 	srv := &http.Server{Addr: fmt.Sprintf(":%v", c.App.Port), Handler: e}

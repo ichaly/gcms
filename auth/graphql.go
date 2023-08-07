@@ -1,10 +1,13 @@
 package auth
 
 import (
+	"errors"
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/graphql-go/graphql/gqlerrors"
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/parser"
+	"net/http"
 )
 
 type Graphql struct {
@@ -15,12 +18,12 @@ func NewGraphql(e *casbin.Enforcer) (*Graphql, error) {
 	return &Graphql{enforcer: e}, nil
 }
 
-func (my *Graphql) Name() string {
-	return "Graphql"
+func (my *Graphql) Base() string {
+	return "/graphql"
 }
 
-func (my *Graphql) Init(r *gin.RouterGroup) {
-	r.Group("/graphql").Use(my.handler())
+func (my *Graphql) Init(r gin.IRouter) {
+	r.Use(my.handler())
 }
 
 func (my *Graphql) handler() gin.HandlerFunc {
@@ -44,7 +47,7 @@ func (my *Graphql) handler() gin.HandlerFunc {
 							return
 						}
 						if !ok {
-							c.Abort()
+							c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"errors": gqlerrors.FormatErrors(errors.New("无权限"))})
 							return
 						}
 					}

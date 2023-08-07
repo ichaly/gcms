@@ -1,8 +1,11 @@
 package auth
 
 import (
+	"errors"
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/graphql-go/graphql/gqlerrors"
+	"net/http"
 )
 
 type Casbin struct {
@@ -13,11 +16,11 @@ func NewCasbin(e *casbin.Enforcer) (*Casbin, error) {
 	return &Casbin{enforcer: e}, nil
 }
 
-func (my *Casbin) Name() string {
-	return "Casbin"
+func (my *Casbin) Base() string {
+	return "/"
 }
 
-func (my *Casbin) Init(r *gin.RouterGroup) {
+func (my *Casbin) Init(r gin.IRouter) {
 	r.Use(my.handler())
 }
 
@@ -29,7 +32,7 @@ func (my *Casbin) handler() gin.HandlerFunc {
 			return
 		}
 		if !ok {
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"errors": gqlerrors.FormatErrors(errors.New("无权限"))})
 			return
 		}
 		c.Next()

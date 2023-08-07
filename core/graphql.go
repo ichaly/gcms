@@ -9,10 +9,6 @@ import (
 	"net/http"
 )
 
-const (
-	apiEndpoint = "/graphql"
-)
-
 type Graphql struct {
 	schema graphql.Schema
 }
@@ -42,12 +38,12 @@ func NewGraphql(e *base.Engine, g SchemaGroup) (*Graphql, error) {
 	return &Graphql{schema: s}, nil
 }
 
-func (my *Graphql) Name() string {
-	return "Graphql"
+func (my *Graphql) Base() string {
+	return "/graphql"
 }
 
-func (my *Graphql) Init(r *gin.RouterGroup) {
-	r.Match([]string{http.MethodGet, http.MethodPost}, apiEndpoint, my.handler)
+func (my *Graphql) Init(r gin.IRouter) {
+	r.Match([]string{http.MethodGet, http.MethodPost}, "/", my.handler)
 }
 
 func (my *Graphql) handler(c *gin.Context) {
