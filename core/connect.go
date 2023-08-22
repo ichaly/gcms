@@ -6,6 +6,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"time"
 )
 
 func NewConnect(c *Config, p []gorm.Plugin, e []interface{}) (*gorm.DB, error) {
@@ -28,6 +29,10 @@ func NewConnect(c *Config, p []gorm.Plugin, e []interface{}) (*gorm.DB, error) {
 			return nil, err
 		}
 	}
+	sqlDb, _ := db.DB()
+	sqlDb.SetMaxIdleConns(5)
+	sqlDb.SetMaxOpenConns(100)
+	sqlDb.SetConnMaxLifetime(5 * time.Minute)
 	return db, nil
 }
 

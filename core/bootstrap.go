@@ -17,9 +17,15 @@ var (
 )
 
 func Bootstrap(l fx.Lifecycle, c *Config, e *gin.Engine, g PluginGroup) {
-	Version = "0.0.1"
-	GitHash = "Unknown"
-	BuildTime = time.Now().Format("2006-01-02 15:04:05")
+	if Version == "" {
+		Version = "v0.0.0"
+	}
+	if GitHash == "" {
+		GitHash = "Unknown"
+	}
+	if BuildTime == "" {
+		BuildTime = time.Now().Format("2006-01-02 15:04:05")
+	}
 	all := append(g.Middlewares, g.Plugins...)
 	for _, p := range all {
 		r, ok := routers[p.Base()]
