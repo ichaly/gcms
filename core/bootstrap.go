@@ -10,28 +10,17 @@ import (
 )
 
 var (
-	Version   string
-	GitHash   string
-	BuildTime string
+	Version   = "v0.0.0"
+	GitHash   = "Unknown"
+	BuildTime = time.Now().Format("2006-01-02 15:04:05")
 	routers   = make(map[string]gin.IRouter)
 )
 
 func Bootstrap(l fx.Lifecycle, c *Config, e *gin.Engine, g PluginGroup) {
-	if Version == "" {
-		Version = "v0.0.0"
-	}
-	if GitHash == "" {
-		GitHash = "Unknown"
-	}
-	if BuildTime == "" {
-		BuildTime = time.Now().Format("2006-01-02 15:04:05")
-	}
 	all := append(g.Middlewares, g.Plugins...)
 	for _, p := range all {
 		r, ok := routers[p.Base()]
-		if p.Base() == "" {
-			r = e
-		} else if !ok {
+		if !ok {
 			r = e.Group(p.Base())
 			routers[p.Base()] = r
 		}
@@ -40,18 +29,23 @@ func Bootstrap(l fx.Lifecycle, c *Config, e *gin.Engine, g PluginGroup) {
 	srv := &http.Server{Addr: fmt.Sprintf(":%v", c.App.Port), Handler: e}
 	l.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			go func() {
-				fmt.Printf("当前版本:%s-%s 发布日期:%s\n", Version, GitHash, BuildTime)
-				err := srv.ListenAndServe()
-				if err != nil {
-					fmt.Printf("%v failed to start: %v", c.App.Name, err)
-				}
-			}()
+			go startServer(srv, c)
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			fmt.Printf("%v shutdown complete", c.App.Name)
-			return srv.Shutdown(ctx)
+			return stopServer(srv, c)
 		},
 	})
+}
+
+func startServer(srv *http.Server, c *Config) {
+	fmt.Printf("当前版本:%s-%s 发布日期:%s\n", Version, GitHash, BuildTime)
+	if err := srv.ListenAndServe(); err != nil {
+		fmt.Printf("%v failed to start: %v", c.App.Name, err)
+	}
+}
+
+func stopServer(srv *http.Server, c *Config) error {
+	fmt.Printf("%v shutdown complete", c.App.Name)
+	return srv.Shutdown(context.Background())
 }
