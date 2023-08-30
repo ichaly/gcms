@@ -1,12 +1,13 @@
-go 1.20
+go 1.21.0
 
 use (
 	./auth
 	./base
 	./core
 	./data
-	./util
-	./zlog
-	./view
 	./main
+	./util
+	./view
+	./zlog
+	./ylog
 )
