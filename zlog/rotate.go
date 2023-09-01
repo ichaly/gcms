@@ -3,75 +3,43 @@ package zlog
 import (
 	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
-	"strings"
 	"time"
-
-	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 )
 
-type RotateConfig struct {
-	// 共用配置
-	Filename string // 完整文件名
-	MaxAge   int    // 保留旧日志文件的最大天数
+type LevelFunc func(Level) bool
 
-	// 按时间轮转配置
-	RotationTime time.Duration // 日志文件轮转时间
-
-	// 按大小轮转配置
-	MaxSize    int  // 日志文件最大大小（MB）
-	MaxBackups int  // 保留日志文件的最大数量
-	Compress   bool // 是否对日志文件进行压缩归档
-	LocalTime  bool // 是否使用本地时间，默认 UTC 时间
+type rotate struct {
+	LevelFunc
+	Daily bool
+	*lumberjack.Logger
 }
 
-// NewProductionRotateByTime 创建按时间轮转的 io.Writer
-func NewProductionRotateByTime(filename string) io.Writer {
-	return NewRotateByTime(NewProductionRotateConfig(filename))
-}
-
-// NewProductionRotateBySize 创建按大小轮转的 io.Writer
-func NewProductionRotateBySize(filename string) io.Writer {
-	return NewRotateBySize(NewProductionRotateConfig(filename))
-}
-
-func NewProductionRotateConfig(filename string) *RotateConfig {
-	return &RotateConfig{
-		Filename: filename,
-		MaxAge:   30, // 日志保留 30 天
-
-		RotationTime: time.Hour * 24, // 24 小时轮转一次
-
-		MaxSize:    100, // 100M
-		MaxBackups: 100,
-		Compress:   true,
-		LocalTime:  false,
+func (my rotate) WriteLevel(l Level, p []byte) (n int, err error) {
+	if my.LevelFunc(l) {
+		return my.Write(p)
 	}
+	return len(p), nil
 }
 
-func NewRotateByTime(cfg *RotateConfig) io.Writer {
-	opts := []rotatelogs.Option{
-		rotatelogs.WithMaxAge(time.Duration(cfg.MaxAge) * time.Hour * 24),
-		rotatelogs.WithRotationTime(cfg.RotationTime),
-		rotatelogs.WithLinkName(cfg.Filename),
+func NewRotate(ops ...RotateOption) io.Writer {
+	r := &rotate{Logger: &lumberjack.Logger{}}
+	for _, o := range ops {
+		o(r)
 	}
-	if !cfg.LocalTime {
-		rotatelogs.WithClock(rotatelogs.UTC)
+	if r.Daily {
+		go func() {
+			for {
+				now := time.Now()
+				layout := "2006-01-02"
+				//使用Parse 默认获取为UTC时区 需要获取本地时区 所以使用ParseInLocation
+				today, _ := time.ParseInLocation(layout, now.Format(layout), time.Local)
+				// 第二天零点时间戳
+				next := today.AddDate(0, 0, 1)
+				after := next.UnixNano() - now.UnixNano() - 1
+				<-time.After(time.Duration(after) * time.Nanosecond)
+				_ = r.Rotate()
+			}
+		}()
 	}
-	filename := strings.SplitN(cfg.Filename, ".", 2)
-	l, _ := rotatelogs.New(
-		filename[0]+".%Y-%m-%d-%H-%M-%S."+filename[1],
-		opts...,
-	)
-	return l
-}
-
-func NewRotateBySize(cfg *RotateConfig) io.Writer {
-	return &lumberjack.Logger{
-		Filename:   cfg.Filename,
-		MaxSize:    cfg.MaxSize,
-		MaxAge:     cfg.MaxAge,
-		MaxBackups: cfg.MaxBackups,
-		LocalTime:  cfg.LocalTime,
-		Compress:   cfg.Compress,
-	}
+	return r
 }

@@ -1,99 +1,108 @@
 package zlog
 
 import (
-	"io"
+	"fmt"
+	"github.com/rs/zerolog"
 	"os"
+	"strings"
 	"time"
-
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
-type Level = zapcore.Level
+type Level = zerolog.Level
 
 const (
-	DebugLevel = zapcore.DebugLevel
-	InfoLevel  = zapcore.InfoLevel
-	WarnLevel  = zapcore.WarnLevel
-	ErrorLevel = zapcore.ErrorLevel
-	PanicLevel = zapcore.PanicLevel
-	FatalLevel = zapcore.FatalLevel
+	// TraceLevel defines trace log level.
+	TraceLevel = zerolog.TraceLevel
+	// DebugLevel defines debug log level.
+	DebugLevel = zerolog.DebugLevel
+	// InfoLevel defines info log level.
+	InfoLevel = zerolog.InfoLevel
+	// WarnLevel defines warn log level.
+	WarnLevel = zerolog.WarnLevel
+	// ErrorLevel defines error log level.
+	ErrorLevel = zerolog.ErrorLevel
+	// FatalLevel defines fatal log level.
+	FatalLevel = zerolog.FatalLevel
+	// PanicLevel defines panic log level.
+	PanicLevel = zerolog.PanicLevel
+	// NoLevel defines an absent log level.
+	NoLevel = zerolog.NoLevel
+	// Disabled disables the logger.
+	Disabled = zerolog.Disabled
 )
 
 type Logger struct {
-	l *zap.Logger
-	// https://pkg.go.dev/go.uber.org/zap#example-AtomicLevel
-	al *zap.AtomicLevel
+	l zerolog.Logger
 }
 
-func New(out io.Writer, level Level, opts ...Option) *Logger {
-	if out == nil {
-		out = os.Stderr
+func New(ops ...LoggerOption) *Logger {
+	console := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.DateTime}
+	console.FormatLevel = func(i interface{}) string {
+		return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
 	}
-
-	al := zap.NewAtomicLevelAt(level)
-	cfg := zap.NewProductionEncoderConfig()
-	cfg.EncodeTime = zapcore.TimeEncoderOfLayout(time.DateTime)
-
-	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(cfg),
-		zapcore.AddSync(out),
-		al,
-	)
-	return &Logger{l: zap.New(core, opts...), al: &al}
+	console.FormatFieldName = func(i interface{}) string {
+		return fmt.Sprintf("%s=", i)
+	}
+	l := zerolog.New(console).With().Timestamp().Logger()
+	for _, o := range ops {
+		l = o(l)
+	}
+	//zerolog.SetGlobalLevel(level)
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	zerolog.LevelFieldName = "l"
+	zerolog.MessageFieldName = "m"
+	zerolog.TimestampFieldName = "t"
+	return &Logger{l: l}
 }
 
-// SetLevel 动态更改日志级别
-// 对于使用 NewAdapter 创建的 Logger 无效，因为 NewAdapter 本意是根据不同日志级别
-// 创建的多个 zap.Core，不应该通过 SetLevel 将多个 zap.Core 日志级别统一
 func (my *Logger) SetLevel(level Level) {
-	if my.al != nil {
-		my.al.SetLevel(level)
-	}
+	my.l.Level(level)
+}
+func (my *Logger) Trace() *zerolog.Event {
+	return my.l.Trace()
+}
+func (my *Logger) Debug() *zerolog.Event {
+	return my.l.Debug()
+}
+func (my *Logger) Info() *zerolog.Event {
+	return my.l.Info()
+}
+func (my *Logger) Warn() *zerolog.Event {
+	return my.l.Warn()
+}
+func (my *Logger) Error() *zerolog.Event {
+	return my.l.Error()
+}
+func (my *Logger) Fatal() *zerolog.Event {
+	return my.l.Fatal()
+}
+func (my *Logger) Panic() *zerolog.Event {
+	return my.l.Panic()
 }
 
-type Field = zap.Field
+var std = New(WithOut(os.Stderr), WithLevel(InfoLevel))
 
-func (my *Logger) Debug(msg string, fields ...Field) {
-	my.l.Debug(msg, fields...)
-}
-
-func (my *Logger) Info(msg string, fields ...Field) {
-	my.l.Info(msg, fields...)
-}
-
-func (my *Logger) Warn(msg string, fields ...Field) {
-	my.l.Warn(msg, fields...)
-}
-
-func (my *Logger) Error(msg string, fields ...Field) {
-	my.l.Error(msg, fields...)
-}
-
-func (my *Logger) Panic(msg string, fields ...Field) {
-	my.l.Panic(msg, fields...)
-}
-
-func (my *Logger) Fatal(msg string, fields ...Field) {
-	my.l.Fatal(msg, fields...)
-}
-
-func (my *Logger) Sync() error {
-	return my.l.Sync()
-}
-
-var std = New(os.Stderr, InfoLevel)
-
-func Default() *Logger         { return std }
-func ReplaceDefault(l *Logger) { std = l }
-
+func Default() *Logger     { return std }
+func SetDefault(l *Logger) { std = l }
 func SetLevel(level Level) { std.SetLevel(level) }
-
-func Debug(msg string, fields ...Field) { std.Debug(msg, fields...) }
-func Info(msg string, fields ...Field)  { std.Info(msg, fields...) }
-func Warn(msg string, fields ...Field)  { std.Warn(msg, fields...) }
-func Error(msg string, fields ...Field) { std.Error(msg, fields...) }
-func Panic(msg string, fields ...Field) { std.Panic(msg, fields...) }
-func Fatal(msg string, fields ...Field) { std.Fatal(msg, fields...) }
-
-func Sync() error { return std.Sync() }
+func Trace() *zerolog.Event {
+	return std.Trace()
+}
+func Debug() *zerolog.Event {
+	return std.Debug()
+}
+func Info() *zerolog.Event {
+	return std.Info()
+}
+func Warn() *zerolog.Event {
+	return std.Warn()
+}
+func Error() *zerolog.Event {
+	return std.Error()
+}
+func Fatal() *zerolog.Event {
+	return std.Fatal()
+}
+func Panic() *zerolog.Event {
+	return std.Panic()
+}

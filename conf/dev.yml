@@ -13,7 +13,7 @@ cache:
 database:
   dialect: postgres
   host: 127.0.0.1
-  port: 5432
+  port: 5678
   name: gcms
   username: postgres
   password: postgres
