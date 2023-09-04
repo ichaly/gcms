@@ -2,83 +2,59 @@ package base
 
 import (
 	"github.com/graphql-go/graphql"
-	"reflect"
-	"strings"
+	"github.com/mitchellh/mapstructure"
+	"gorm.io/gorm"
 )
 
-// defaultResolver uses reflection to attempt to resolve the result of a given field.
-func defaultResolver(p graphql.ResolveParams) (interface{}, error) {
-	source := p.Source
-	fieldName := p.Info.FieldName
-	sourceVal := reflect.ValueOf(source)
-	if sourceVal.IsValid() && sourceVal.Type().Kind() == reflect.Ptr {
-		sourceVal = sourceVal.Elem()
+func QueryResolver[T any](in graphql.ResolveParams, db *gorm.DB) (interface{}, error) {
+	var p Params[T]
+	err := mapstructure.WeakDecode(in.Args, &p)
+	if err != nil {
+		return nil, err
 	}
-	if !sourceVal.IsValid() {
-		return nil, nil
+	tx := db.WithContext(in.Context).Model(new(T))
+	if p.Where != nil {
+		ParseWhere(p.Where, tx)
 	}
-
-	// Struct
-	if sourceVal.Type().Kind() == reflect.Struct {
-		_, val, err := findFieldInStruct(sourceVal, fieldName)
-		return val, err
+	if p.Sort != nil {
+		ParseSort(p.Sort, tx)
 	}
-
-	// map[string]interface
-	if sourceMap, ok := source.(map[string]interface{}); ok {
-		property := sourceMap[fieldName]
-		val := reflect.ValueOf(property)
-		if val.IsValid() && val.Type().Kind() == reflect.Func {
-			// try type casting the func to the most basic func signature
-			// for more complex signatures, user have to define ResolveFn
-			if propertyFn, ok := property.(func() interface{}); ok {
-				return propertyFn(), nil
-			}
-		}
-		return property, nil
+	if p.Size > 1000 || p.Page < 0 {
+		p.Size = 10
 	}
-
-	// last resort, return nil
-	return nil, nil
+	if p.Size > 0 {
+		tx = tx.Limit(p.Size)
+	}
+	tx = tx.Offset(p.Size * p.Page)
+	var res []T
+	err = tx.Find(&res).Error
+	if err != nil {
+		return nil, err
+	}
+	return res, err
 }
 
-func findFieldInStruct(source reflect.Value, fieldName string) (bool, interface{}, error) {
-	for i := 0; i < source.NumField(); i++ {
-		fieldValue := source.Field(i)
-		fieldType := source.Type().Field(i)
-
-		if strings.EqualFold(fieldType.Name, fieldName) {
-			//if fieldType.Name == strings.Title(fieldName) {
-			// If ptr and value is nil return nil
-			if fieldValue.Type().Kind() == reflect.Ptr && fieldValue.IsNil() {
-				return true, nil, nil
-			}
-			return true, fieldValue.Interface(), nil
-		}
-
-		tag := fieldType.Tag
-		checkTag := func(tagName string) bool {
-			t := tag.Get(tagName)
-			tOptions := strings.Split(t, ",")
-			if len(tOptions) == 0 {
-				return false
-			}
-			if tOptions[0] != fieldName {
-				return false
-			}
-			return true
-		}
-		if checkTag("json") || checkTag("graphql") {
-			return true, fieldValue.Interface(), nil
-		}
-
-		if fieldValue.Kind() == reflect.Struct && fieldType.Anonymous {
-			if ok, val, err := findFieldInStruct(fieldValue, fieldName); ok {
-				return ok, val, err
-			}
-		}
-		continue
+func MutationResolver[T any](in graphql.ResolveParams, db *gorm.DB, v *Validate) (interface{}, error) {
+	var p Params[T]
+	err := mapstructure.WeakDecode(in.Args, &p)
+	if err != nil {
+		return nil, err
 	}
-
-	return false, nil, nil
+	tx := db.WithContext(in.Context).Model(new(T))
+	if p.Where != nil {
+		ParseWhere(p.Where, tx)
+	}
+	if p.Delete {
+		err = tx.Delete(&p.Data).Error
+		return nil, err
+	}
+	err = v.Struct(p.Data)
+	if err != nil {
+		return nil, err
+	}
+	err = tx.Save(&p.Data).Error
+	if err != nil {
+		return nil, err
+	}
+	return p.Data, nil
 }

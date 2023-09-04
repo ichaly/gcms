@@ -1,10 +1,9 @@
 package cmd
 
 import (
+	"github.com/ichaly/gcms/apps"
 	"github.com/ichaly/gcms/auth"
-	"github.com/ichaly/gcms/core"
-	"github.com/ichaly/gcms/data"
-	"github.com/ichaly/gcms/mesh"
+	"github.com/ichaly/gcms/base"
 	"github.com/spf13/cobra"
 	"go.uber.org/fx"
 	"path/filepath"
@@ -21,10 +20,9 @@ var runCmd = &cobra.Command{
 			configFile = filepath.Join("./conf", "dev.yml")
 		}
 		fx.New(
+			apps.Modules,
 			auth.Modules,
-			core.Modules,
-			data.Modules,
-			view.Modules,
+			base.Modules,
 			fx.Supply(configFile),
 		).Run()
 	},

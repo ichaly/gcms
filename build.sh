@@ -1,9 +1,9 @@
 #GOOS=darwin
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
   -ldflags "-w -s \
-  -X 'github.com/ichaly/gcms/core.Version=v0.1.0' \
-  -X 'github.com/ichaly/gcms/core.GitHash=$(git rev-parse --short HEAD)' \
-  -X 'github.com/ichaly/gcms/core.BuildTime=$(date '+%Y-%m-%d %H:%M:%S')'" \
+  -X 'github.com/ichaly/gcms/base.Version=v0.1.0' \
+  -X 'github.com/ichaly/gcms/base.GitHash=$(git rev-parse --short HEAD)' \
+  -X 'github.com/ichaly/gcms/base.BuildTime=$(date '+%Y-%m-%d %H:%M:%S')'" \
   -o main/dist/app main/main.go
 
 #删除所有旧镜像

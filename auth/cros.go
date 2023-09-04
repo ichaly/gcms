@@ -2,13 +2,13 @@ package auth
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/ichaly/gcms/core"
+	"github.com/ichaly/gcms/base"
 	"net/http"
 )
 
 type Cros struct{}
 
-func NewCros() (core.Plugin, error) {
+func NewCros() (base.Plugin, error) {
 	return &Cros{}, nil
 }
 

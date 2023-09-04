@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"github.com/go-oauth2/oauth2/v4"
-	"github.com/ichaly/gcms/core"
+	"github.com/ichaly/gcms/base"
 	"github.com/ichaly/gcms/util"
 	"gorm.io/gorm"
 )
@@ -13,7 +13,7 @@ type ClientStore struct {
 }
 
 type Client struct {
-	core.Entity
+	base.Entity
 	Secret string `gorm:"type:varchar(512)"`
 	Domain string `gorm:"type:varchar(512)"`
 	Public bool

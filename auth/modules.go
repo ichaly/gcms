@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/ichaly/gcms/core"
+	"github.com/ichaly/gcms/base"
 	"go.uber.org/fx"
 )
 
@@ -35,7 +35,7 @@ var Modules = fx.Options(
 		),
 		fx.Annotate(
 			NewIndex,
-			fx.As(new(core.Plugin)),
+			fx.As(new(base.Plugin)),
 			fx.ResultTags(`group:"plugin"`),
 		),
 	),

@@ -3,7 +3,7 @@ package auth
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/graphql-go/graphql/gqlerrors"
-	"github.com/ichaly/gcms/core"
+	"github.com/ichaly/gcms/base"
 	"net/http"
 
 	"github.com/go-oauth2/oauth2/v4/server"
@@ -13,7 +13,7 @@ type Oauth struct {
 	Oauth *server.Server
 }
 
-func NewOauth(o *server.Server) core.Plugin {
+func NewOauth(o *server.Server) base.Plugin {
 	return &Oauth{Oauth: o}
 }
 

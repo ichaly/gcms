@@ -1,28 +1,110 @@
 package base
 
-import "context"
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"github.com/eko/gocache/lib/v4/cache"
+	"github.com/eko/gocache/lib/v4/store"
+	"github.com/ichaly/gcms/util"
+	"golang.org/x/sync/singleflight"
+	"gorm.io/gorm"
+	"gorm.io/gorm/callbacks"
+	"time"
+)
 
-// The Cache interface. If a custom cache is provided, it must implement this interface.
-type Cache[K comparable, V any] interface {
-	Get(context.Context, K) (Thunk[V], bool)
-	Set(context.Context, K, Thunk[V])
-	Delete(context.Context, K) bool
-	Clear()
+var requestGroup singleflight.Group
+
+type keyCacheContext struct{}
+
+type Cache struct {
+	Cache       *cache.Cache[string]
+	exp         time.Duration
+	keyGenerate func(*gorm.DB) string
 }
 
-// NoCache implements Cache interface where all methods are noops.
-// This is useful for when you don't want to cache items but still
-// want to use a data loader
-type NoCache[K comparable, V any] struct{}
+// Name `gorm.Plugin` implements.
+func (my Cache) Name() string { return "gorm-cache" }
 
-// Get is a NOOP
-func (c *NoCache[K, V]) Get(context.Context, K) (Thunk[V], bool) { return nil, false }
+func NewCache(s *cache.Cache[string]) gorm.Plugin {
+	return Cache{s, 30 * time.Minute, func(db *gorm.DB) string {
+		return fmt.Sprintf(
+			"sql:%s",
+			util.MD5(db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...)),
+		)
+	}}
+}
 
-// Set is a NOOP
-func (c *NoCache[K, V]) Set(context.Context, K, Thunk[V]) { return }
+// Initialize `gorm.Plugin` implements.
+func (my Cache) Initialize(db *gorm.DB) error {
+	if err := db.Callback().Query().Replace("gorm:query", my.query); err != nil {
+		return err
+	}
+	if err := db.Callback().Create().After("gorm:create").Register(my.Name()+":after_create", my.afterUpdate); err != nil {
+		return err
+	}
+	if err := db.Callback().Update().After("gorm:update").Register(my.Name()+":after_update", my.afterUpdate); err != nil {
+		return err
+	}
+	if err := db.Callback().Delete().After("gorm:delete").Register(my.Name()+":after_delete", my.afterUpdate); err != nil {
+		return err
+	}
+	return nil
+}
 
-// Delete is a NOOP
-func (c *NoCache[K, V]) Delete(context.Context, K) bool { return false }
+// query replace gorm:query
+func (my Cache) query(db *gorm.DB) {
+	if db.DryRun || db.Error != nil {
+		return
+	}
+	callbacks.BuildQuerySQL(db)
+	cacheKey := my.keyGenerate(db)
 
-// Clear is a NOOP
-func (c *NoCache[K, V]) Clear() { return }
+	// get from cache
+	val, err := my.Cache.Get(db.Statement.Context, cacheKey)
+	if err == nil {
+		if err = util.UnmarshalJson(val, db.Statement.Dest); err == nil {
+			return
+		}
+	}
+
+	// get from db
+	my.queryFromDB(db, cacheKey)
+
+	// add to cache
+	if val, err = util.MarshalJson(db.Statement.Dest); err == nil {
+		_ = my.Cache.Set(db.Statement.Context, cacheKey, val, store.WithExpiration(my.exp), store.WithTags([]string{db.Statement.Table}))
+	}
+}
+
+func (my Cache) afterUpdate(db *gorm.DB) {
+	total := db.Statement.RowsAffected
+	if total <= 0 {
+		return
+	}
+
+	if err := my.Cache.Invalidate(db.Statement.Context, store.WithInvalidateTags([]string{db.Statement.Table})); err != nil {
+		_ = db.AddError(err)
+	}
+}
+
+func (my Cache) queryFromDB(db *gorm.DB, cacheKey string) {
+	var (
+		rows *sql.Rows
+		err  error
+	)
+	var val interface{}
+	val, err, _ = requestGroup.Do(cacheKey, func() (interface{}, error) {
+		db.Statement.Context = context.WithValue(db.Statement.Context, keyCacheContext{}, 1)
+		return db.Statement.ConnPool.QueryContext(db.Statement.Context, db.Statement.SQL.String(), db.Statement.Vars...)
+	})
+	rows = val.(*sql.Rows)
+	if err != nil {
+		_ = db.AddError(err)
+		return
+	}
+	defer func(rows *sql.Rows) {
+		_ = rows.Close()
+	}(rows)
+	gorm.Scan(rows, db, 0)
+}
