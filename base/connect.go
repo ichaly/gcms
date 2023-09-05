@@ -31,7 +31,7 @@ func NewConnect(c *Config, p []gorm.Plugin, e []interface{}) (*gorm.DB, error) {
 	}
 	sqlDb, _ := db.DB()
 	sqlDb.SetMaxIdleConns(5)
-	sqlDb.SetMaxOpenConns(100)
+	sqlDb.SetMaxOpenConns(90)
 	sqlDb.SetConnMaxLifetime(5 * time.Minute)
 	return db, nil
 }
