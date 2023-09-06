@@ -15,8 +15,8 @@ type Graphql struct {
 	enforcer *casbin.Enforcer
 }
 
-func NewGraphql(e *casbin.Enforcer) (base.Plugin, error) {
-	return &Graphql{enforcer: e}, nil
+func NewGraphql(e *casbin.Enforcer) base.Plugin {
+	return &Graphql{enforcer: e}
 }
 
 func (my *Graphql) Base() string {

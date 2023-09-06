@@ -1,20 +1,33 @@
 package auth
 
 import (
-	"github.com/ichaly/gcms/base"
 	"go.uber.org/fx"
 )
 
 var Modules = fx.Options(
 	fx.Provide(
-		fx.Annotate(
-			NewCros,
-			fx.ResultTags(`group:"middleware"`),
-		),
+		//Casbin鉴权
+		NewEnforcer,
 		//Oauth2认证
 		NewOauthServer,
 		NewOauthTokenStore,
 		NewOauthClientStore,
+		//跨域中间件
+		fx.Annotate(
+			NewCros,
+			fx.ResultTags(`group:"middleware"`),
+		),
+		//鉴权中间件
+		fx.Annotate(
+			NewCasbin,
+			fx.ResultTags(`group:"middleware"`),
+		),
+		//Graphql鉴权中间件
+		fx.Annotate(
+			NewGraphql,
+			fx.ResultTags(`group:"middleware"`),
+		),
+		//登录验证中间件
 		fx.Annotate(
 			NewOauthVerify,
 			fx.ResultTags(`group:"middleware"`),
@@ -23,19 +36,8 @@ var Modules = fx.Options(
 			NewOauth,
 			fx.ResultTags(`group:"plugin"`),
 		),
-		//Casbin鉴权
-		NewEnforcer,
-		fx.Annotate(
-			NewCasbin,
-			fx.ResultTags(`group:"middleware"`),
-		),
-		fx.Annotate(
-			NewGraphql,
-			fx.ResultTags(`group:"middleware"`),
-		),
 		fx.Annotate(
 			NewIndex,
-			fx.As(new(base.Plugin)),
 			fx.ResultTags(`group:"plugin"`),
 		),
 	),

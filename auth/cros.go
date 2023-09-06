@@ -8,8 +8,8 @@ import (
 
 type Cros struct{}
 
-func NewCros() (base.Plugin, error) {
-	return &Cros{}, nil
+func NewCros() base.Plugin {
+	return &Cros{}
 }
 
 func (my *Cros) Base() string {

@@ -13,8 +13,8 @@ type Casbin struct {
 	enforcer *casbin.Enforcer
 }
 
-func NewCasbin(e *casbin.Enforcer) (base.Plugin, error) {
-	return &Casbin{enforcer: e}, nil
+func NewCasbin(e *casbin.Enforcer) base.Plugin {
+	return &Casbin{enforcer: e}
 }
 
 func (my *Casbin) Base() string {

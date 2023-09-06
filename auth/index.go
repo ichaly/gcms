@@ -2,13 +2,14 @@ package auth
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/ichaly/gcms/base"
 	"net/http"
 )
 
 type Index struct{}
 
-func NewIndex() (*Index, error) {
-	return &Index{}, nil
+func NewIndex() base.Plugin {
+	return &Index{}
 }
 
 func (my *Index) Base() string {
