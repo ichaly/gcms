@@ -22,21 +22,19 @@ func (my *Casbin) Base() string {
 }
 
 func (my *Casbin) Init(r gin.IRouter) {
-	r.Use(my.handler())
+	r.Use(my.handler)
 }
 
-func (my *Casbin) handler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		//判断策略中是否存在
-		sub := c.Request.Context().Value(base.UserContextKey)
-		ok, err := my.enforcer.Enforce(sub, c.Request.URL.RequestURI(), c.Request.Method)
-		if err != nil {
-			return
-		}
-		if !ok {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"errors": gqlerrors.FormatErrors(errors.New("无权限"))})
-			return
-		}
-		c.Next()
+func (my *Casbin) handler(c *gin.Context) {
+	//判断策略中是否存在
+	sub := c.Request.Context().Value(base.UserContextKey)
+	ok, err := my.enforcer.Enforce(sub, c.Request.URL.RequestURI(), c.Request.Method)
+	if err != nil {
+		return
 	}
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"errors": gqlerrors.FormatErrors(errors.New("无权限"))})
+		return
+	}
+	c.Next()
 }

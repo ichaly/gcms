@@ -21,14 +21,12 @@ func (my *verify) Base() string {
 
 func (my *verify) Init(r gin.IRouter) {
 	//使用中间件鉴权
-	r.Use(my.verifyHandler())
+	r.Use(my.verifyHandler)
 }
 
-func (my *verify) verifyHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if token, err := my.Oauth.ValidationBearerToken(c.Request); err == nil {
-			c.Request.WithContext(context.WithValue(c.Request.Context(), base.UserContextKey, token.GetUserID()))
-		}
-		c.Next()
+func (my *verify) verifyHandler(c *gin.Context) {
+	if token, err := my.Oauth.ValidationBearerToken(c.Request); err == nil {
+		c.Request.WithContext(context.WithValue(c.Request.Context(), base.UserContextKey, token.GetUserID()))
 	}
+	c.Next()
 }

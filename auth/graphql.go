@@ -24,38 +24,36 @@ func (my *Graphql) Base() string {
 }
 
 func (my *Graphql) Init(r gin.IRouter) {
-	r.Use(my.handler())
+	r.Use(my.handler)
 }
 
-func (my *Graphql) handler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var rb = struct {
-			Query string `form:"query"`
-		}{}
-		err := c.ShouldBind(&rb)
-		if err != nil {
-			return
-		}
-		doc, _ := parser.Parse(parser.ParseParams{Source: rb.Query})
-		for _, node := range doc.Definitions {
-			switch d := node.(type) {
-			case ast.TypeSystemDefinition:
-				for _, s := range d.GetSelectionSet().Selections {
-					switch f := s.(type) {
-					case *ast.Field:
-						sub := c.Request.Context().Value(base.UserContextKey)
-						ok, err := my.enforcer.Enforce(sub, f.Name.Value, d.GetOperation())
-						if err != nil {
-							return
-						}
-						if !ok {
-							c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"errors": gqlerrors.FormatErrors(errors.New("无权限"))})
-							return
-						}
+func (my *Graphql) handler(c *gin.Context) {
+	var rb = struct {
+		Query string `form:"query"`
+	}{}
+	err := c.ShouldBind(&rb)
+	if err != nil {
+		return
+	}
+	doc, _ := parser.Parse(parser.ParseParams{Source: rb.Query})
+	for _, node := range doc.Definitions {
+		switch d := node.(type) {
+		case ast.TypeSystemDefinition:
+			for _, s := range d.GetSelectionSet().Selections {
+				switch f := s.(type) {
+				case *ast.Field:
+					sub := c.Request.Context().Value(base.UserContextKey)
+					ok, err := my.enforcer.Enforce(sub, f.Name.Value, d.GetOperation())
+					if err != nil {
+						return
+					}
+					if !ok {
+						c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"errors": gqlerrors.FormatErrors(errors.New("无权限"))})
+						return
 					}
 				}
 			}
 		}
-		c.Next()
 	}
+	c.Next()
 }

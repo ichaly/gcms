@@ -23,22 +23,18 @@ func (my *Oauth) Base() string {
 
 func (my *Oauth) Init(r gin.IRouter) {
 	//授权路由
-	r.Any("/token", my.tokenHandler())
-	r.Any("/authorize", my.authorizeHandler())
+	r.Any("/token", my.tokenHandler)
+	r.Any("/authorize", my.authorizeHandler)
 }
 
-func (my *Oauth) tokenHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if err := my.Oauth.HandleTokenRequest(c.Writer, c.Request); err != nil {
-			c.JSON(http.StatusInternalServerError, gqlerrors.FormatErrors(err))
-		}
+func (my *Oauth) tokenHandler(c *gin.Context) {
+	if err := my.Oauth.HandleTokenRequest(c.Writer, c.Request); err != nil {
+		c.JSON(http.StatusInternalServerError, gqlerrors.FormatErrors(err))
 	}
 }
 
-func (my *Oauth) authorizeHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if err := my.Oauth.HandleAuthorizeRequest(c.Writer, c.Request); err != nil {
-			c.JSON(http.StatusInternalServerError, gqlerrors.FormatErrors(err))
-		}
+func (my *Oauth) authorizeHandler(c *gin.Context) {
+	if err := my.Oauth.HandleAuthorizeRequest(c.Writer, c.Request); err != nil {
+		c.JSON(http.StatusInternalServerError, gqlerrors.FormatErrors(err))
 	}
 }
