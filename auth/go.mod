@@ -10,9 +10,6 @@ require (
 	github.com/go-oauth2/oauth2/v4 v4.5.2
 	github.com/google/uuid v1.3.1
 	github.com/graphql-go/graphql v0.8.1
-	github.com/ichaly/gcms/base v0.0.0-20230901111738-1c78d1f215ad
-	github.com/ichaly/gcms/util v0.0.0-20230901111738-1c78d1f215ad
-	github.com/json-iterator/go v1.1.12
 	go.uber.org/fx v1.20.0
 	gorm.io/gorm v1.25.4
 )
@@ -49,6 +46,7 @@ require (
 	github.com/jackc/pgx/v4 v4.17.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect

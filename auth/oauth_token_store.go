@@ -8,13 +8,11 @@ import (
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/google/uuid"
-	"github.com/json-iterator/go"
+	"github.com/ichaly/gcms/util"
 	"time"
 )
 
 const CachePrefix = "token"
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type TokenStore struct {
 	Cache       *cache.Cache[string]
@@ -28,7 +26,7 @@ func NewOauthTokenStore(c *cache.Cache[string]) oauth2.TokenStore {
 }
 
 func (my *TokenStore) Create(ctx context.Context, info oauth2.TokenInfo) error {
-	jv, err := json.MarshalToString(info)
+	jv, err := util.MarshalJson(info)
 	if err != nil {
 		return err
 	}
@@ -105,7 +103,7 @@ func (my *TokenStore) getData(ctx context.Context, key string) (oauth2.TokenInfo
 		return nil, err
 	}
 	var t *models.Token
-	err = json.UnmarshalFromString(val, t)
+	err = util.UnmarshalJson(val, t)
 	if err != nil {
 		return nil, err
 	}
