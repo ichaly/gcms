@@ -8,4 +8,5 @@ use (
 	./main
 	./util
 	./zlog
+	./test
 )
