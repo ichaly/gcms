@@ -1,6 +1,8 @@
 package base
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"gorm.io/gorm"
 	"time"
 )
@@ -17,9 +19,19 @@ type Primary struct {
 	ID ID `gorm:"primary_key;comment:主键;next:sonyflake;" json:",omitempty"`
 }
 
+type Dictionary map[string]interface{}
+
+func (my Dictionary) Value() (driver.Value, error) {
+	return json.Marshal(my)
+}
+
+func (my *Dictionary) Scan(val any) error {
+	return json.Unmarshal(val.([]byte), my)
+}
+
 type General struct {
-	State     int8       `gorm:"index;comment:状态;"`
-	Remark    string     `gorm:"type:text;comment:备注" json:",omitempty"`
+	State     int8       `gorm:"index;comment:状态;"	`
+	Remark    Dictionary `gorm:"type:json;comment:备注" json:",omitempty"`
 	CreatedAt *time.Time `gorm:"comment:创建时间;" json:",omitempty"`
 	UpdatedAt *time.Time `gorm:"comment:更新时间;" json:",omitempty"`
 }
