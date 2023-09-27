@@ -17,6 +17,7 @@ func isPrim(p reflect.Type) bool {
 		reflect.String,
 		reflect.Float32, reflect.Float64,
 		reflect.Complex64, reflect.Complex128,
+		reflect.Map,
 		reflect.Struct,
 		reflect.Interface:
 		return true

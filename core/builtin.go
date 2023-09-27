@@ -12,8 +12,9 @@ func (my *Engine) asBuiltinScalar(typ reflect.Type) (graphql.Type, error) {
 	}
 
 	var scalar graphql.Type
-
-	if base.PkgPath() == "" {
+	if base.Kind() == reflect.Map {
+		scalar = JSON
+	} else if base.PkgPath() == "" {
 		switch base.Kind() {
 		case reflect.Int, reflect.Int64, reflect.Int32, reflect.Uint, reflect.Uint64, reflect.Uint32,
 			reflect.Int8, reflect.Int16, reflect.Uint8, reflect.Uint16:
