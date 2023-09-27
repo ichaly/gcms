@@ -23,8 +23,8 @@ func (my *Oauth) Base() string {
 
 func (my *Oauth) Init(r gin.IRouter) {
 	//授权路由
-	r.Any("/token", my.tokenHandler)
-	r.Any("/authorize", my.authorizeHandler)
+	r.Match([]string{http.MethodGet, http.MethodPost}, "/token", my.tokenHandler)
+	r.Match([]string{http.MethodGet, http.MethodPost}, "/authorize", my.authorizeHandler)
 }
 
 func (my *Oauth) tokenHandler(c *gin.Context) {

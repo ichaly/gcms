@@ -23,10 +23,10 @@ func NewOauthClientStore(d *gorm.DB) oauth2.ClientStore {
 }
 
 type Client struct {
-	base.Entity
-	Secret string `gorm:"type:varchar(512)"`
 	Domain string `gorm:"type:varchar(512)"`
+	Secret string `gorm:"type:varchar(512)"`
 	Public bool
+	base.Entity
 }
 
 func (Client) TableName() string {

@@ -17,7 +17,7 @@ func (my *Index) Base() string {
 }
 
 func (my *Index) Init(r gin.IRouter) {
-	r.Any("/", func(c *gin.Context) {
+	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Welcome"})
 	})
 }
