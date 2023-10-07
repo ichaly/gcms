@@ -1,9 +1,12 @@
 package base
 
 import (
+	"context"
 	"database/sql/driver"
 	"encoding/json"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"gorm.io/gorm/schema"
 	"time"
 )
 
@@ -27,6 +30,32 @@ func (my Dictionary) Value() (driver.Value, error) {
 
 func (my *Dictionary) Scan(val any) error {
 	return json.Unmarshal(val.([]byte), my)
+}
+
+func (Dictionary) GormDBDataType(db *gorm.DB, field *schema.Field) string {
+	switch db.Dialector.Name() {
+	case "sqlite":
+		return "JSON"
+	case "mysql":
+		return "JSON"
+	case "postgres":
+		return "JSONB"
+	case "sqlserver":
+		return "NVARCHAR(MAX)"
+	}
+	return ""
+}
+
+func (my Dictionary) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
+	//switch db.Dialector.Name() {
+	//case "mysql":
+	//case "postgres":
+	//}
+	//return clause.Expr{
+	//	SQL:  "ST_PointFromText(?)",
+	//	Vars: []interface{}{fmt.Sprintf("POINT(%d %d)", my.X, my.Y)},
+	//}
+	return clause.Expr{}
 }
 
 type General struct {
