@@ -4,6 +4,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func QueryResolver[T any](in graphql.ResolveParams, db *gorm.DB) (interface{}, error) {
@@ -52,7 +53,10 @@ func MutationResolver[T any](in graphql.ResolveParams, db *gorm.DB, v *Validate)
 	if err != nil {
 		return nil, err
 	}
-	err = tx.Save(&p.Data).Error
+	err = tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+		Columns:   []clause.Column{{Name: "id"}},
+	}).Create(&p.Data).Error
 	if err != nil {
 		return nil, err
 	}

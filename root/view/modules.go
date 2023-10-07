@@ -1,8 +1,8 @@
 package view
 
 import (
-	"github.com/ichaly/gcms/apps/view/content"
-	"github.com/ichaly/gcms/apps/view/user"
+	"github.com/ichaly/gcms/root/view/content"
+	"github.com/ichaly/gcms/root/view/user"
 	"go.uber.org/fx"
 )
 

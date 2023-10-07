@@ -1,12 +1,12 @@
 go 1.21.0
 
 use (
-	./apps
 	./auth
 	./base
 	./core
-	./main
 	./util
 	./zlog
 	./test
+	./main
+	./root
 )

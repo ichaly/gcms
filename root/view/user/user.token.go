@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/graphql-go/graphql"
-	"github.com/ichaly/gcms/apps/data"
 	"github.com/ichaly/gcms/core"
+	"github.com/ichaly/gcms/root/data"
 	"time"
 )
 

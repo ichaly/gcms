@@ -41,6 +41,10 @@ type Entity struct {
 	General `mapstructure:",squash"`
 }
 
+func (my *Entity) BeforeUpdate(tx *gorm.DB) error {
+	return nil
+}
+
 type Deleted struct {
 	DeletedAt *gorm.DeletedAt `gorm:"index;comment:逻辑删除;" json:",omitempty"`
 }

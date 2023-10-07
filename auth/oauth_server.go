@@ -8,7 +8,7 @@ import (
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/ichaly/gcms/apps/data"
+	"github.com/ichaly/gcms/root/data"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"net/http"

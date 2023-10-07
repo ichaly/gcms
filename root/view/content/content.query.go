@@ -2,9 +2,9 @@ package content
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/ichaly/gcms/apps/data"
 	"github.com/ichaly/gcms/base"
 	"github.com/ichaly/gcms/core"
+	"github.com/ichaly/gcms/root/data"
 	"gorm.io/gorm"
 )
 

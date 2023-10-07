@@ -1,4 +1,4 @@
-module github.com/ichaly/gcms/apps
+module github.com/ichaly/gcms/root
 
 go 1.21.0
 

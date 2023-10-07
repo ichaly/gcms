@@ -3,9 +3,9 @@ package test
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/ichaly/gcms/apps/data"
 	"github.com/ichaly/gcms/auth"
 	"github.com/ichaly/gcms/base"
+	"github.com/ichaly/gcms/root/data"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"strings"
