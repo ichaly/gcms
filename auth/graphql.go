@@ -9,8 +9,8 @@ import (
 	"github.com/graphql-go/graphql/language/ast"
 	"github.com/graphql-go/graphql/language/parser"
 	"github.com/ichaly/gcms/base"
-	"github.com/ichaly/gcms/util"
 	"net/http"
+	"strings"
 )
 
 type Graphql struct {
@@ -39,25 +39,39 @@ func (my *Graphql) handler(c *gin.Context) {
 		return
 	}
 	doc, _ := parser.Parse(parser.ParseParams{Source: req.Query})
-	sub, _ := c.Request.Context().Value(base.UserContextKey).(uint64)
+	sub, _ := c.Request.Context().Value(base.UserContextKey).(string)
 	for _, node := range doc.Definitions {
 		switch d := node.(type) {
 		case ast.TypeSystemDefinition:
-			for _, s := range d.GetSelectionSet().Selections {
-				switch f := s.(type) {
-				case *ast.Field:
-					ok, err := my.enforcer.Enforce(util.FormatLong(int64(sub)), f.Name.Value, d.GetOperation())
-					if err != nil {
-						c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"errors": gqlerrors.FormatErrors(err)})
-						return
-					}
-					if !ok {
-						c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"errors": gqlerrors.FormatErrors(errors.New("无权限"))})
-						return
-					}
+			act := d.GetOperation()
+			list := unfoldSelection(d.GetSelectionSet())
+			for _, obj := range list {
+				ok, err := my.enforcer.Enforce(sub, obj, act)
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"errors": gqlerrors.FormatErrors(err)})
+					return
+				}
+				if !ok {
+					c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"errors": gqlerrors.FormatErrors(errors.New("无权限"))})
+					return
 				}
 			}
 		}
 	}
 	c.Next()
+}
+
+func unfoldSelection(set *ast.SelectionSet, prefix ...string) (res []string) {
+	for _, s := range set.Selections {
+		switch f := s.(type) {
+		case *ast.Field:
+			nodes := append(prefix, f.Name.Value)
+			if f.GetSelectionSet() == nil {
+				res = append(res, strings.Join(nodes, "."))
+			} else {
+				res = append(res, unfoldSelection(f.GetSelectionSet(), nodes...)...)
+			}
+		}
+	}
+	return
 }
