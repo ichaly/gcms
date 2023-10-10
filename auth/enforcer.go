@@ -19,5 +19,21 @@ func NewEnforcer(d *gorm.DB) (*casbin.Enforcer, error) {
 	if err != nil {
 		return nil, err
 	}
+	registerFunction(e, d)
 	return e, nil
+}
+
+func registerFunction(e *casbin.Enforcer, d *gorm.DB) {
+	e.AddFunction("permit", func(args ...interface{}) (interface{}, error) {
+		sub := args[0].(string)
+		obj := args[1].(string)
+		act := args[2].(string)
+		//判断时候有相应的策略，如果没有则放行
+		policy := e.GetFilteredPolicy(1, obj, act)
+		if len(policy) == 0 {
+			return true, nil
+		}
+		//是否是超级管理员
+		return e.HasRoleForUser(sub, "superadmin")
+	})
 }

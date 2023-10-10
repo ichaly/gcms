@@ -18,10 +18,10 @@ var Modules = fx.Options(
 			fx.ResultTags(`group:"middleware"`),
 		),
 		//鉴权中间件
-		fx.Annotate(
-			NewCasbin,
-			fx.ResultTags(`group:"middleware"`),
-		),
+		//fx.Annotate(
+		//	NewCasbin,
+		//	fx.ResultTags(`group:"middleware"`),
+		//),
 		//Graphql鉴权中间件
 		fx.Annotate(
 			NewGraphql,

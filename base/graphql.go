@@ -2,6 +2,7 @@ package base
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/gqlerrors"
 	"github.com/ichaly/gcms/core"
@@ -48,7 +49,7 @@ func (my *Graphql) Init(r gin.IRouter) {
 
 func (my *Graphql) handler(c *gin.Context) {
 	var req gqlRequest
-	err := c.ShouldBind(&req)
+	err := c.ShouldBindBodyWith(&req, binding.JSON)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"errors": gqlerrors.FormatErrors(err)})
 		return
