@@ -1,12 +1,8 @@
 package base
 
 import (
-	"context"
-	"database/sql/driver"
-	"encoding/json"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
-	"gorm.io/gorm/schema"
 	"time"
 )
 
@@ -22,56 +18,16 @@ type Primary struct {
 	ID ID `gorm:"primary_key;comment:主键;next:sonyflake;" json:",omitempty"`
 }
 
-type Dictionary map[string]interface{}
-
-func (my Dictionary) Value() (driver.Value, error) {
-	return json.Marshal(my)
-}
-
-func (my *Dictionary) Scan(val any) error {
-	return json.Unmarshal(val.([]byte), my)
-}
-
-func (Dictionary) GormDBDataType(db *gorm.DB, field *schema.Field) string {
-	switch db.Dialector.Name() {
-	case "sqlite":
-		return "JSON"
-	case "mysql":
-		return "JSON"
-	case "postgres":
-		return "JSONB"
-	case "sqlserver":
-		return "NVARCHAR(MAX)"
-	}
-	return ""
-}
-
-func (my Dictionary) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
-	//switch db.Dialector.Name() {
-	//case "mysql":
-	//case "postgres":
-	//}
-	//return clause.Expr{
-	//	SQL:  "ST_PointFromText(?)",
-	//	Vars: []interface{}{fmt.Sprintf("POINT(%d %d)", my.X, my.Y)},
-	//}
-	return clause.Expr{}
-}
-
 type General struct {
-	State     int8       `gorm:"index;comment:状态;"	`
-	Remark    Dictionary `gorm:"type:json;comment:备注" json:",omitempty"`
-	CreatedAt *time.Time `gorm:"comment:创建时间;" json:",omitempty"`
-	UpdatedAt *time.Time `gorm:"comment:更新时间;" json:",omitempty"`
+	State     int8              `gorm:"index;comment:状态;"	`
+	Remark    datatypes.JSONMap `gorm:"comment:备注" json:",omitempty"`
+	CreatedAt *time.Time        `gorm:"comment:创建时间;" json:",omitempty"`
+	UpdatedAt *time.Time        `gorm:"comment:更新时间;" json:",omitempty"`
 }
 
 type Entity struct {
 	Primary `mapstructure:",squash"`
 	General `mapstructure:",squash"`
-}
-
-func (my *Entity) BeforeUpdate(tx *gorm.DB) error {
-	return nil
 }
 
 type Deleted struct {

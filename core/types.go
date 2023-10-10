@@ -91,10 +91,10 @@ var (
 		},
 	})
 
-	JSON = graphql.NewScalar(
+	Json = graphql.NewScalar(
 		graphql.ScalarConfig{
-			Name:        "JSON",
-			Description: "The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)",
+			Name:        "Json",
+			Description: "The `Json` scalar type represents Json values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)",
 			Serialize: func(value interface{}) interface{} {
 				return value
 			},
