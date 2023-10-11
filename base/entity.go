@@ -1,8 +1,10 @@
 package base
 
 import (
+	"context"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"strconv"
 	"time"
 )
 
@@ -47,30 +49,34 @@ type AuditorEntity struct {
 }
 
 func (my *AuditorEntity) BeforeCreate(tx *gorm.DB) error {
-	if val, ok := getCurrentUserFromContext(tx); ok {
+	if val, ok := getCurrentUserFromContext(tx.Statement.Context); ok {
 		my.CreatedBy = val
 	}
 	return nil
 }
 
 func (my *AuditorEntity) BeforeUpdate(tx *gorm.DB) error {
-	if val, ok := getCurrentUserFromContext(tx); ok {
+	if val, ok := getCurrentUserFromContext(tx.Statement.Context); ok {
 		my.UpdatedBy = val
 	}
 	return nil
 }
 
 func (my *AuditorEntity) BeforeDelete(tx *gorm.DB) error {
-	if val, ok := getCurrentUserFromContext(tx); ok {
+	if val, ok := getCurrentUserFromContext(tx.Statement.Context); ok {
 		my.UpdatedBy = val
 	}
 	return nil
 }
 
-func getCurrentUserFromContext(tx *gorm.DB) (*uint64, bool) {
-	ctx := tx.Statement.Context
-	if val, ok := ctx.Value(UserContextKey).(uint64); ok && val > 0 {
-		return &val, ok
+func getCurrentUserFromContext(ctx context.Context) (*uint64, bool) {
+	val, ok := ctx.Value(UserContextKey).(string)
+	if !ok || val == "" {
+		return nil, false
 	}
-	return nil, false
+	num, err := strconv.ParseUint(val, 10, 64)
+	if err != nil {
+		return nil, false
+	}
+	return &num, ok
 }
