@@ -1,6 +1,7 @@
 package base
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
@@ -25,5 +26,7 @@ func NewServer(c *Config) *gin.Engine {
 		trans, _ = uni.GetTranslator("zh")
 		_ = chTranslations.RegisterDefaultTranslations(v, trans)
 	}
-	return gin.Default()
+	e := gin.Default()
+	e.Use(cors.Default())
+	return e
 }

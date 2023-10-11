@@ -12,16 +12,6 @@ var Modules = fx.Options(
 		NewOauthServer,
 		NewOauthTokenStore,
 		NewOauthClientStore,
-		//跨域中间件
-		fx.Annotate(
-			NewCros,
-			fx.ResultTags(`group:"middleware"`),
-		),
-		//鉴权中间件
-		//fx.Annotate(
-		//	NewCasbin,
-		//	fx.ResultTags(`group:"middleware"`),
-		//),
 		//Graphql鉴权中间件
 		fx.Annotate(
 			NewGraphql,
@@ -34,10 +24,6 @@ var Modules = fx.Options(
 		),
 		fx.Annotate(
 			NewOauth,
-			fx.ResultTags(`group:"plugin"`),
-		),
-		fx.Annotate(
-			NewIndex,
 			fx.ResultTags(`group:"plugin"`),
 		),
 	),
