@@ -25,9 +25,7 @@ func NewEnforcer(d *gorm.DB) (*casbin.Enforcer, error) {
 
 func registerFunction(e *casbin.Enforcer, d *gorm.DB) {
 	e.AddFunction("permit", func(args ...interface{}) (interface{}, error) {
-		sub := args[0].(string)
-		obj := args[1].(string)
-		act := args[2].(string)
+		sub, obj, act := args[0].(string), args[1].(string), args[2].(string)
 		//判断时候有相应的策略，如果没有则放行
 		policy := e.GetFilteredPolicy(1, obj, act)
 		if len(policy) == 0 {

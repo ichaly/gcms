@@ -5,6 +5,7 @@ import (
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/ichaly/gcms/base"
 	"github.com/ichaly/gcms/util"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -31,6 +32,26 @@ type Client struct {
 
 func (Client) TableName() string {
 	return "sys_client"
+}
+
+func (my *Client) BeforeCreate(tx *gorm.DB) error {
+	return my.encryptSecret(tx)
+}
+
+func (my *Client) BeforeUpdate(tx *gorm.DB) error {
+	return my.encryptSecret(tx)
+}
+
+func (my *Client) encryptSecret(tx *gorm.DB) error {
+	if my.Secret == "" {
+		return nil
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(my.Secret), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	tx.Statement.SetColumn("Secret", string(hash))
+	return nil
 }
 
 func (my *Client) GetID() string {

@@ -12,6 +12,10 @@ var Modules = fx.Options(
 		NewOauthServer,
 		NewOauthTokenStore,
 		NewOauthClientStore,
+		fx.Annotate(
+			NewOauth,
+			fx.ResultTags(`group:"plugin"`),
+		),
 		//Graphql鉴权中间件
 		fx.Annotate(
 			NewGraphql,
@@ -21,10 +25,6 @@ var Modules = fx.Options(
 		fx.Annotate(
 			NewOauthVerify,
 			fx.ResultTags(`group:"middleware"`),
-		),
-		fx.Annotate(
-			NewOauth,
-			fx.ResultTags(`group:"plugin"`),
 		),
 	),
 )
