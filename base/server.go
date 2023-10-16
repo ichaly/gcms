@@ -2,6 +2,7 @@ package base
 
 import (
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
@@ -28,5 +29,6 @@ func NewServer(c *Config) *gin.Engine {
 	}
 	e := gin.Default()
 	e.Use(cors.Default())
+	e.Use(gzip.Gzip(gzip.DefaultCompression))
 	return e
 }
