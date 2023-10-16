@@ -6,6 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 )
 
@@ -13,16 +15,20 @@ var (
 	Version   = "v0.0.0"
 	GitHash   = "Unknown"
 	BuildTime = time.Now().Format("2006-01-02 15:04:05")
-	routers   = make(map[string]gin.IRouter)
+
+	routers = make(map[string]gin.IRouter)
+	reg     = regexp.MustCompile(`/+`)
 )
 
 func Bootstrap(l fx.Lifecycle, c *Config, e *gin.Engine, g PluginGroup) {
+	routers["/"] = e
 	all := append(g.Middlewares, g.Plugins...)
 	for _, p := range all {
-		r, ok := routers[p.Base()]
+		base := fmt.Sprintf("%s/", strings.TrimRight(reg.ReplaceAllString(p.Base(), "/"), "/"))
+		r, ok := routers[base]
 		if !ok {
-			r = e.Group(p.Base())
-			routers[p.Base()] = r
+			r = e.Group(base)
+			routers[base] = r
 		}
 		p.Init(r)
 	}

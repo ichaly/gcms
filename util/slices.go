@@ -8,7 +8,7 @@ func ReduceArray[T, M any](s []T, f func(M, T) M, initValue M) M {
 	return acc
 }
 
-func FilterArray[T any](d, s []T, keep func(i T) bool) []T {
+func FilterArray[T any](s []T, keep func(i T) bool) (d []T) {
 	for _, n := range s {
 		if keep(n) {
 			d = append(d, n)
